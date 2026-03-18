@@ -198,4 +198,4 @@ This project is licensed under the [PolyForm Noncommercial License 1.0.0](LICENS
 
 **You cannot:** use commercially without permission.
 
-Interested in commercial use? Contact [Jose Ibarra](https://github.com/ibarrajo).
+Interested in commercial use? Contact [Alex Ibarra](https://github.com/ibarrajo).
