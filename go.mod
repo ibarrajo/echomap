@@ -3,6 +3,7 @@ module github.com/elninja/echomap
 go 1.26.1
 
 require (
+	github.com/mattn/go-sqlite3 v1.14.37
 	go.uber.org/fx v1.24.0
 	go.uber.org/zap v1.27.1
 	google.golang.org/grpc v1.79.3

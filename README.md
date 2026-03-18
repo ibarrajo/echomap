@@ -131,6 +131,10 @@ make test
 | `ECHOMAP_PING_COUNT` | `3` | Pings per probe |
 | `ECHOMAP_TIMEOUT_MS` | `5000` | Client timeout for all pings |
 | `ECHOMAP_HMAC_SECRET` | (dev default) | HMAC signing key (set in production!) |
+| `ECHOMAP_DB_PATH` | `echomap.db` | SQLite database path |
+| `ECHOMAP_RATE_LIMIT_MAX` | `10` | Max requests per window per client |
+| `ECHOMAP_RATE_LIMIT_WINDOW` | `1m` | Rate limit window duration |
+| `ECHOMAP_DATASET_PATH` | (none) | Path to WonderNetwork CSV for soft bounds |
 
 ## Project Structure
 
@@ -145,7 +149,9 @@ echomap/
 │   ├── challenge/         # HMAC tokens, probe selection
 │   ├── dataset/           # Latency dataset parser + matcher
 │   ├── geo/               # Haversine, circles, intersection, engine
-│   └── grpcserver/        # gRPC handlers
+│   ├── grpcserver/        # gRPC handlers
+│   ├── ratelimit/         # Sliding window rate limiter + gRPC interceptor
+│   └── storage/           # SQLite persistence (results, anomalies, history)
 ├── Makefile
 └── ERD.md                 # Full PRD / design document
 ```
@@ -172,13 +178,15 @@ EchoMap uses free, public latency datasets for Layer 2 soft-bound matching:
 
 ## Tests
 
-59 tests across 4 modules, all built test-first (TDD):
+90 tests across 7 modules, all built test-first (TDD):
 
 ```
-internal/geo          — 25 tests (Haversine, circles, jitter, ratios, dataset integration)
+internal/geo          — 31 tests (Haversine, circles, jitter CV, VPN detection, probe correlation, dataset integration)
 internal/challenge    — 12 tests (tokens, expiry, single-use, probe selection)
 internal/dataset      — 10 tests (CSV parsing, lookup, best-match, region filtering)
-internal/grpcserver   —  8 tests (FetchChallenge, SubmitMeasurement, replay, spoofing)
+internal/grpcserver   — 13 tests (handlers, replay, spoofing, integration: persistence, rate limiting, VPN, history)
+internal/storage      —  8 tests (SQLite CRUD, client history, anomaly logs, suspicious count)
+internal/ratelimit    —  7 tests (sliding window, per-client isolation, gRPC interceptor)
 internal/config       —  4 tests (defaults, env overrides, invalid input)
 ```
 

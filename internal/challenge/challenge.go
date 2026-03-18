@@ -101,6 +101,17 @@ func (m *Manager) GenerateToken(clientID string) (ChallengeToken, error) {
 	}, nil
 }
 
+// GetClientID returns the client ID associated with a challenge (before consuming it).
+func (m *Manager) GetClientID(challengeID string) string {
+	m.mu.Lock()
+	entry, exists := m.tokens[challengeID]
+	m.mu.Unlock()
+	if !exists {
+		return ""
+	}
+	return entry.clientID
+}
+
 // ValidateToken checks a challenge token. Tokens are single-use — consumed on validation.
 func (m *Manager) ValidateToken(challengeID, token string) error {
 	m.mu.Lock()
