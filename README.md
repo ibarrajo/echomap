@@ -105,37 +105,55 @@ Running from the **Pacific Northwest, US** against 16 probes across 6 continents
 ```
 === GEOLOCATION RESULT ===
   Verdict:    STATUS_CONFIRMED
-  Location:   Seattle, US (47.64°N, 122.33°W)
-  Accuracy:   ±484 km radius
+  Location:   Seattle, US (47.65°N, 122.33°W)
+  Accuracy:   ±508 km radius
 
   Confidence:
-    Physics (speed of light):   100.0%
-    Physics + dataset:          100.0%
-    Nearest probe:              sea-1 (4.8ms → within 479 km)
+    Physics (speed of light):    90.0%
+    Physics + network latency:   95.0%
+    Nearest probe:              sea-1
+
+  Network Latency Match (Layer 2):
+    Best match city:  Los Angeles
+    Match quality:    58.0%
+
+  Probe Details:
+  PROBE           RTT   EXPECTED    MAX DIST  BOUND
+  jnb-1       318.1ms   213.6ms     30808 km   within 30808 km
+  sel-1       174.6ms   124.8ms     16464 km   within 16464 km
+  sin-1       171.4ms   181.4ms     16143 km   within 16143 km
+  ord-1        48.0ms    40.3ms      3805 km   within 3805 km
+  ewr-1        66.5ms    54.4ms      5655 km   within 5655 km
+  sea-1         5.0ms    18.5ms       503 km   within 503 km
+  lon-1       176.3ms   114.7ms     16628 km   within 16628 km
 
   Performance:
-    Total time:        969ms
-    Challenge fetch:   11ms (1 gRPC call)
-    Probe pings:       933ms (16 probes × 3 pings = 48 TCP connects, parallel)
-    Submit + compute:  23ms (1 gRPC call)
+    Total time:        999ms
+    Challenge fetch:   10ms (1 gRPC call)
+    Probe pings:       965ms (16 probes × 3 pings = 48 TCP connects, parallel)
+    Submit + compute:  22ms (1 gRPC call)
     Total requests:    50 (2 gRPC + 48 TCP)
 ```
 
 ### How Confidence Works
 
-| Layer | What It Proves | Typical Range |
-|-------|---------------|---------------|
-| **Physics (speed of light)** | Max distance from each probe. Cannot be faked — you can't be faster than light in fiber. | Circle radius from RTT. Nearest probe anchors the result. |
-| **Physics + dataset** | Cross-references RTT profile against known city-to-city latencies. Tightens the region estimate. | Adds 5-15% confidence when dataset matches well. |
+| Layer | What It Proves | Range |
+|-------|---------------|-------|
+| **Physics (speed of light)** — 90% | Max distance from each probe based on RTT. Cannot be faked — you can't be faster than light in fiber. | Nearest probe (sea-1 at 5ms) anchors within ~500 km |
+| **Physics + network latency** — 95% | Cross-references observed RTTs against 225 known city-to-city latency pairs. Boosts confidence when the profile matches a real city. | Adds 5% here: observed RTTs broadly match US West Coast profile |
 
-The system measures RTTs to 30 globally distributed probes (Vultr datacenters), subtracts TCP overhead, and computes the maximum distance you could physically be from each probe. The intersection of all distance circles gives your region. The nearest probe (lowest RTT) provides the tightest constraint.
+The **EXPECTED** column shows what the dataset predicts the RTT *should* be for the best-match city. Comparing expected vs observed reveals:
+- **Close match** (Singapore: 171ms observed vs 181ms expected) — consistent with the matched region
+- **Higher than expected** (London: 176ms observed vs 115ms expected) — normal variance from TCP overhead and routing
+- **Nearest probe** (Seattle: 5ms observed vs 18ms expected) — user is closer than any city in the dataset, confirming proximity
 
 ### What The Numbers Mean
 
-- **±484 km radius**: You are somewhere within a ~500 km circle centered on the estimated location
-- **4.8ms to Seattle probe**: After subtracting ~10ms TCP overhead, this means you're within ~479 km of Seattle's Vultr datacenter
-- **48 TCP connects in 933ms**: All probes pinged in parallel — total time is the slowest probe (Johannesburg at ~300ms × 3 pings), not the sum
-- **2 gRPC calls**: One to fetch the challenge, one to submit measurements. Server computes geolocation in <1ms
+- **±508 km radius**: You are somewhere within a ~500 km circle centered on the estimated location
+- **5.0ms to Seattle probe**: After subtracting ~10ms TCP overhead, this means you're within ~503 km of Seattle's Vultr datacenter
+- **48 TCP connects in 965ms**: All probes pinged in parallel — total time is the slowest probe (Johannesburg at ~318ms x 3 pings), not the sum
+- **2 gRPC calls + 22ms compute**: One to fetch the challenge (HMAC token), one to submit measurements. Server computes geolocation in <1ms
+- **50 total requests**: 2 gRPC + 48 TCP — the entire geolocation check in under 1 second
 
 ## Quick Start
 
