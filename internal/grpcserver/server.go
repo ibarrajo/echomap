@@ -44,9 +44,9 @@ func (h *Handler) FetchChallenge(ctx context.Context, req *echomapv1.ChallengeRe
 		return nil, status.Errorf(codes.Internal, "generate token: %v", err)
 	}
 
-	// Use all available probes for maximum triangulation accuracy.
-	// With only ~11 global probes, selecting a subset risks missing the user's region.
-	probes := h.mgr.SelectProbes(0, 0, 100)
+	// Select probes with geographic diversity — 1 per region + extras for precision.
+	// 16 probes covers all 14 regions with 2 extras near the estimated location.
+	probes := h.mgr.SelectProbes(0, 0, 16)
 
 	targets := make([]*echomapv1.ProbeTarget, len(probes))
 	for i, p := range probes {

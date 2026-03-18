@@ -52,36 +52,34 @@ func TestMaxDistanceFromRTT_ZeroRTT(t *testing.T) {
 }
 
 func TestMaxDistanceFromRTT_BelowOverhead(t *testing.T) {
-	// 10ms RTT is below 30ms TCP overhead → minimum 50km radius
-	d := geo.MaxDistanceFromRTT(10_000)
-	if math.Abs(d-50) > 1 {
-		t.Errorf("RTT below TCP overhead should give 50 km minimum, got %f", d)
+	// 5ms RTT below 10ms TCP overhead → uses raw RTT: 5000/2 * 0.2 = 500 km
+	d := geo.MaxDistanceFromRTT(5_000)
+	if math.Abs(d-500) > 1 {
+		t.Errorf("RTT below TCP overhead should use raw calc, got %f", d)
 	}
 }
 
 func TestMaxDistanceFromRTT_AtOverhead(t *testing.T) {
-	// 30ms RTT = exactly TCP overhead → minimum 50km
-	d := geo.MaxDistanceFromRTT(30_000)
-	if math.Abs(d-50) > 1 {
-		t.Errorf("RTT at TCP overhead should give 50 km minimum, got %f", d)
+	// 10ms RTT = exactly TCP overhead → raw: 10000/2 * 0.2 = 1000 km
+	d := geo.MaxDistanceFromRTT(10_000)
+	if math.Abs(d-1000) > 1 {
+		t.Errorf("RTT at TCP overhead should use raw calc, got %f", d)
 	}
 }
 
 func TestMaxDistanceFromRTT_100ms(t *testing.T) {
-	// 100ms RTT: effective = 100000 - 30000 = 70000μs
-	// one-way = 35000μs, distance = 35000 * 0.2 = 7000 km
+	// 100ms: effective = 100000 - 10000 = 90000μs → 90000/2 * 0.2 = 9000 km
 	d := geo.MaxDistanceFromRTT(100_000)
-	if math.Abs(d-7000) > 1 {
-		t.Errorf("100ms RTT should give ~7000 km, got %f", d)
+	if math.Abs(d-9000) > 1 {
+		t.Errorf("100ms RTT should give ~9000 km, got %f", d)
 	}
 }
 
 func TestMaxDistanceFromRTT_250ms(t *testing.T) {
-	// 250ms RTT: effective = 250000 - 30000 = 220000μs
-	// one-way = 110000μs, distance = 110000 * 0.2 = 22000 km
+	// 250ms: effective = 250000 - 10000 = 240000μs → 240000/2 * 0.2 = 24000 km
 	d := geo.MaxDistanceFromRTT(250_000)
-	if math.Abs(d-22000) > 1 {
-		t.Errorf("250ms RTT should give ~22000 km, got %f", d)
+	if math.Abs(d-24000) > 1 {
+		t.Errorf("250ms RTT should give ~24000 km, got %f", d)
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"sort"
+	"sync"
 	"time"
 
 	echomapv1 "github.com/elninja/echomap/proto/v1"
@@ -45,23 +46,32 @@ func main() {
 	fmt.Printf("  Targets: %d probes\n", len(challenge.Targets))
 	fmt.Printf("  Timeout: %dms\n", challenge.TimeoutMs)
 
-	// Step 2: Ping each probe target
-	fmt.Println("\nPinging probes...")
-	var measurements []*echomapv1.ProbeMeasurement
-	for _, target := range challenge.Targets {
-		rtts := pingProbe(target.Host, int(target.Port), int(target.PingCount))
-		measurements = append(measurements, &echomapv1.ProbeMeasurement{
-			ProbeId: target.Id,
-			RttsUs:  rtts,
-		})
+	// Step 2: Ping all probe targets in parallel
+	fmt.Printf("\nPinging %d probes in parallel...\n", len(challenge.Targets))
+	type probeResult struct {
+		target *echomapv1.ProbeTarget
+		rtts   []int32
+	}
+	results := make([]probeResult, len(challenge.Targets))
+	var wg sync.WaitGroup
+	for i, target := range challenge.Targets {
+		wg.Add(1)
+		go func(idx int, t *echomapv1.ProbeTarget) {
+			defer wg.Done()
+			results[idx] = probeResult{target: t, rtts: pingProbe(t.Host, int(t.Port), int(t.PingCount))}
+		}(i, target)
+	}
+	wg.Wait()
 
-		// Display results
-		medianRTT := median(rtts)
-		fmt.Printf("  %s (%s:%d): median=%.2fms [%s]\n",
-			target.Id, target.Host, target.Port,
-			float64(medianRTT)/1000.0,
-			formatRTTs(rtts),
-		)
+	var measurements []*echomapv1.ProbeMeasurement
+	for _, r := range results {
+		measurements = append(measurements, &echomapv1.ProbeMeasurement{
+			ProbeId: r.target.Id,
+			RttsUs:  r.rtts,
+		})
+		medianRTT := median(r.rtts)
+		fmt.Printf("  %-8s %7.1fms  [%s]\n",
+			r.target.Id, float64(medianRTT)/1000.0, formatRTTs(r.rtts))
 	}
 
 	// Step 3: Submit measurements

@@ -12,11 +12,11 @@ const (
 	// calculating distance (see MaxDistanceFromRTT).
 	fiberSpeedKMPerUS = 0.2 // km per microsecond (theoretical fiber speed)
 
-	// TCP connect adds fixed overhead: SYN/SYN-ACK processing, kernel scheduling,
-	// TLS negotiation. Empirically ~25-35ms per connection even to nearby servers.
-	// We subtract this before computing distance so that a 50ms RTT to a nearby
-	// server gives ~0km instead of 5000km.
-	tcpOverheadUS = 30_000 // 30ms baseline overhead in microseconds
+	// TCP connect adds fixed overhead: SYN/SYN-ACK processing, kernel scheduling.
+	// Empirically ~5-15ms per connection to nearby servers, varies by server.
+	// We use a conservative 10ms so that near-probe RTTs still produce useful
+	// circles rather than collapsing to minimum.
+	tcpOverheadUS = 10_000 // 10ms baseline overhead in microseconds
 )
 
 // Circle represents a maximum-distance circle from a probe.
@@ -76,8 +76,9 @@ func MaxDistanceFromRTT(rttUS int) float64 {
 	// Subtract fixed TCP overhead (SYN/SYN-ACK, processing)
 	effective := rttUS - tcpOverheadUS
 	if effective <= 0 {
-		// RTT is within TCP overhead — user is very close to probe
-		return 50 // minimum 50km radius for nearby probes
+		// RTT is within TCP overhead — user is very close to probe.
+		// Use the raw RTT to give a proportional minimum distance.
+		return float64(rttUS) / 2.0 * fiberSpeedKMPerUS
 	}
 	// one-way = effective / 2, distance = one-way * speed
 	return float64(effective) / 2.0 * fiberSpeedKMPerUS

@@ -215,16 +215,16 @@ func (e *Engine) score(region Region, probeCount int, jitterBad, ratioOK bool, d
 // defaultProbeToCity maps known probe IDs to dataset city names.
 func defaultProbeToCity() map[string]string {
 	return map[string]string{
-		"fra-1": "Frankfurt",
-		"lon-1": "London",
-		"par-1": "Paris",
-		"ams-1": "Amsterdam",
-		"lax-1": "Los Angeles",
-		"hnd-1": "Tokyo",
-		"syd-1": "Sydney",
-		"gru-1": "Sao Paulo",
-		"jnb-1": "Johannesburg",
-		"sin-1": "Singapore",
-		"bom-1": "Mumbai",
+		"fra-1": "Frankfurt", "lon-1": "London", "par-1": "Paris",
+		"ams-1": "Amsterdam", "mad-1": "Madrid", "man-1": "Manchester",
+		"sto-1": "Stockholm", "waw-1": "Warsaw",
+		"lax-1": "Los Angeles", "sea-1": "Seattle", "dfw-1": "Dallas",
+		"ord-1": "Chicago", "ewr-1": "New York", "atl-1": "Atlanta",
+		"mia-1": "Miami", "yto-1": "Toronto", "mex-1": "Mexico City",
+		"gru-1": "Sao Paulo", "scl-1": "Santiago",
+		"hnd-1": "Tokyo", "osk-1": "Osaka", "sel-1": "Seoul",
+		"sin-1": "Singapore", "bom-1": "Mumbai", "del-1": "Delhi", "blr-1": "Bangalore",
+		"syd-1": "Sydney", "mel-1": "Melbourne",
+		"jnb-1": "Johannesburg", "tlv-1": "Tel Aviv",
 	}
 }

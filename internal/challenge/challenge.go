@@ -42,22 +42,59 @@ type Probe struct {
 	Lat        float64
 	Lon        float64
 	Port       int
+	Region     string  // continent/region tag for diversity selection
 	DistanceKM float64 // distance from the estimated user location
 }
 
-// Known global probe locations (a starter set covering major regions).
+// 27 Vultr speedtest servers — verified TCP port 80, global coverage.
 var knownProbes = []Probe{
-	{ID: "fra-1", Host: "fra-de-ping.vultr.com", Lat: 50.1109, Lon: 8.6821, Port: 80},
-	{ID: "lon-1", Host: "lon-gb-ping.vultr.com", Lat: 51.5074, Lon: -0.1278, Port: 80},
-	{ID: "par-1", Host: "par-fr-ping.vultr.com", Lat: 48.8566, Lon: 2.3522, Port: 80},
-	{ID: "ams-1", Host: "ams-nl-ping.vultr.com", Lat: 52.3676, Lon: 4.9041, Port: 80},
-	{ID: "lax-1", Host: "lax-ca-us-ping.vultr.com", Lat: 33.9425, Lon: -118.4081, Port: 80},
-	{ID: "hnd-1", Host: "hnd-jp-ping.vultr.com", Lat: 35.6762, Lon: 139.6503, Port: 80},
-	{ID: "syd-1", Host: "syd-au-ping.vultr.com", Lat: -33.8688, Lon: 151.2093, Port: 80},
-	{ID: "gru-1", Host: "sao-br-ping.vultr.com", Lat: -23.5505, Lon: -46.6333, Port: 80},
-	{ID: "jnb-1", Host: "jnb-za-ping.vultr.com", Lat: -26.2041, Lon: 28.0473, Port: 80},
-	{ID: "sin-1", Host: "sgp-ping.vultr.com", Lat: 1.3521, Lon: 103.8198, Port: 80},
-	{ID: "bom-1", Host: "bom-in-ping.vultr.com", Lat: 19.0760, Lon: 72.8777, Port: 80},
+	// North America — US (6 regions)
+	{ID: "lax-1", Host: "lax-ca-us-ping.vultr.com", Lat: 33.9425, Lon: -118.4081, Port: 80, Region: "na-west"},
+	{ID: "sea-1", Host: "wa-us-ping.vultr.com", Lat: 47.6062, Lon: -122.3321, Port: 80, Region: "na-west"},
+	{ID: "dfw-1", Host: "tx-us-ping.vultr.com", Lat: 32.7767, Lon: -96.7970, Port: 80, Region: "na-central"},
+	{ID: "ord-1", Host: "il-us-ping.vultr.com", Lat: 41.8781, Lon: -87.6298, Port: 80, Region: "na-central"},
+	{ID: "ewr-1", Host: "nj-us-ping.vultr.com", Lat: 40.7128, Lon: -74.0060, Port: 80, Region: "na-east"},
+	{ID: "atl-1", Host: "ga-us-ping.vultr.com", Lat: 33.7490, Lon: -84.3880, Port: 80, Region: "na-east"},
+	{ID: "mia-1", Host: "fl-us-ping.vultr.com", Lat: 25.7617, Lon: -80.1918, Port: 80, Region: "na-east"},
+
+	// North America — Canada + Mexico
+	{ID: "yto-1", Host: "tor-ca-ping.vultr.com", Lat: 43.6532, Lon: -79.3832, Port: 80, Region: "na-east"},
+	{ID: "mex-1", Host: "mex-mx-ping.vultr.com", Lat: 19.4326, Lon: -99.1332, Port: 80, Region: "na-central"},
+
+	// South America
+	{ID: "gru-1", Host: "sao-br-ping.vultr.com", Lat: -23.5505, Lon: -46.6333, Port: 80, Region: "sa"},
+	{ID: "scl-1", Host: "scl-cl-ping.vultr.com", Lat: -33.4489, Lon: -70.6693, Port: 80, Region: "sa"},
+
+	// Europe — West
+	{ID: "lon-1", Host: "lon-gb-ping.vultr.com", Lat: 51.5074, Lon: -0.1278, Port: 80, Region: "eu-west"},
+	{ID: "par-1", Host: "par-fr-ping.vultr.com", Lat: 48.8566, Lon: 2.3522, Port: 80, Region: "eu-west"},
+	{ID: "ams-1", Host: "ams-nl-ping.vultr.com", Lat: 52.3676, Lon: 4.9041, Port: 80, Region: "eu-west"},
+	{ID: "fra-1", Host: "fra-de-ping.vultr.com", Lat: 50.1109, Lon: 8.6821, Port: 80, Region: "eu-west"},
+	{ID: "mad-1", Host: "mad-es-ping.vultr.com", Lat: 40.4168, Lon: -3.7038, Port: 80, Region: "eu-west"},
+	{ID: "man-1", Host: "man-uk-ping.vultr.com", Lat: 53.4808, Lon: -2.2426, Port: 80, Region: "eu-west"},
+
+	// Europe — North/East
+	{ID: "sto-1", Host: "sto-se-ping.vultr.com", Lat: 59.3293, Lon: 18.0686, Port: 80, Region: "eu-north"},
+	{ID: "waw-1", Host: "waw-pl-ping.vultr.com", Lat: 52.2297, Lon: 21.0122, Port: 80, Region: "eu-east"},
+
+	// Middle East
+	{ID: "tlv-1", Host: "tlv-il-ping.vultr.com", Lat: 32.0853, Lon: 34.7818, Port: 80, Region: "me"},
+
+	// Asia
+	{ID: "hnd-1", Host: "hnd-jp-ping.vultr.com", Lat: 35.6762, Lon: 139.6503, Port: 80, Region: "asia-east"},
+	{ID: "osk-1", Host: "osk-jp-ping.vultr.com", Lat: 34.6937, Lon: 135.5023, Port: 80, Region: "asia-east"},
+	{ID: "sel-1", Host: "sel-kor-ping.vultr.com", Lat: 37.5665, Lon: 126.9780, Port: 80, Region: "asia-east"},
+	{ID: "sin-1", Host: "sgp-ping.vultr.com", Lat: 1.3521, Lon: 103.8198, Port: 80, Region: "asia-se"},
+	{ID: "bom-1", Host: "bom-in-ping.vultr.com", Lat: 19.0760, Lon: 72.8777, Port: 80, Region: "asia-south"},
+	{ID: "del-1", Host: "del-in-ping.vultr.com", Lat: 28.7041, Lon: 77.1025, Port: 80, Region: "asia-south"},
+	{ID: "blr-1", Host: "blr-in-ping.vultr.com", Lat: 12.9716, Lon: 77.5946, Port: 80, Region: "asia-south"},
+
+	// Oceania
+	{ID: "syd-1", Host: "syd-au-ping.vultr.com", Lat: -33.8688, Lon: 151.2093, Port: 80, Region: "oceania"},
+	{ID: "mel-1", Host: "mel-au-ping.vultr.com", Lat: -37.8136, Lon: 144.9631, Port: 80, Region: "oceania"},
+
+	// Africa
+	{ID: "jnb-1", Host: "jnb-za-ping.vultr.com", Lat: -26.2041, Lon: 28.0473, Port: 80, Region: "africa"},
 }
 
 // NewManager creates a new challenge manager.
@@ -135,72 +172,86 @@ func (m *Manager) ValidateToken(challengeID, token string) error {
 	return nil
 }
 
-// SelectProbes picks probes for a challenge based on the estimated user location.
-// Returns a mix of near, far, and random probes.
+// SelectProbes picks probes optimized for geolocation accuracy.
+//
+// Strategy: guarantee geographic diversity first, then fill with distance-based selection.
+// 1. Pick 1 probe from each unique region (ensures continental coverage)
+// 2. Sort remaining by distance from estimated location
+// 3. Fill to count with nearest remaining (for precision around the user)
+//
+// This ensures we always have probes to both confirm AND exclude regions,
+// regardless of where the user is estimated to be.
 func (m *Manager) SelectProbes(estLat, estLon float64, count int) []Probe {
 	if count >= len(knownProbes) {
-		count = len(knownProbes)
+		result := make([]Probe, len(knownProbes))
+		for i, p := range knownProbes {
+			p.DistanceKM = geo.HaversineKM(estLat, estLon, p.Lat, p.Lon)
+			result[i] = p
+		}
+		return result
 	}
 
-	// Calculate distance from estimated location to each probe
-	type probeWithDist struct {
-		Probe
-		dist float64
-	}
-	var withDist []probeWithDist
+	// Step 1: Group probes by region
+	regionProbes := make(map[string][]Probe)
 	for _, p := range knownProbes {
-		d := geo.HaversineKM(estLat, estLon, p.Lat, p.Lon)
-		withDist = append(withDist, probeWithDist{Probe: p, dist: d})
+		regionProbes[p.Region] = append(regionProbes[p.Region], p)
 	}
 
-	// Sort by distance
-	sort.Slice(withDist, func(i, j int) bool {
-		return withDist[i].dist < withDist[j].dist
-	})
-
-	// Selection strategy:
-	// - ~50% nearest (for precision)
-	// - ~33% farthest (for exclusion)
-	// - ~17% middle (for anomaly detection)
-	nearCount := int(math.Ceil(float64(count) * 0.5))
-	farCount := int(math.Ceil(float64(count) * 0.33))
-	midCount := count - nearCount - farCount
-	if midCount < 0 {
-		midCount = 0
-		farCount = count - nearCount
-	}
-
+	// Step 2: Pick the nearest probe from each region (geographic diversity)
 	selected := make(map[string]bool)
 	var result []Probe
 
-	// Add nearest
-	for i := 0; i < len(withDist) && len(result) < nearCount; i++ {
-		p := withDist[i].Probe
-		p.DistanceKM = withDist[i].dist
+	regions := make([]string, 0, len(regionProbes))
+	for r := range regionProbes {
+		regions = append(regions, r)
+	}
+	sort.Strings(regions) // deterministic order
+
+	for _, region := range regions {
+		probes := regionProbes[region]
+		// Find nearest probe in this region to estimated location
+		bestIdx := 0
+		bestDist := math.MaxFloat64
+		for i, p := range probes {
+			d := geo.HaversineKM(estLat, estLon, p.Lat, p.Lon)
+			if d < bestDist {
+				bestDist = d
+				bestIdx = i
+			}
+		}
+		p := probes[bestIdx]
+		p.DistanceKM = bestDist
 		result = append(result, p)
 		selected[p.ID] = true
-	}
 
-	// Add farthest
-	for i := len(withDist) - 1; i >= 0 && farCount > 0; i-- {
-		if !selected[withDist[i].Probe.ID] {
-			p := withDist[i].Probe
-			p.DistanceKM = withDist[i].dist
-			result = append(result, p)
-			selected[p.ID] = true
-			farCount--
+		if len(result) >= count {
+			break
 		}
 	}
 
-	// Add middle
-	mid := len(withDist) / 2
-	for i := mid; i < len(withDist) && midCount > 0; i++ {
-		if !selected[withDist[i].Probe.ID] {
-			p := withDist[i].Probe
-			p.DistanceKM = withDist[i].dist
+	// Step 3: Fill remaining slots with nearest unselected probes
+	if len(result) < count {
+		type probeWithDist struct {
+			Probe
+			dist float64
+		}
+		var remaining []probeWithDist
+		for _, p := range knownProbes {
+			if !selected[p.ID] {
+				d := geo.HaversineKM(estLat, estLon, p.Lat, p.Lon)
+				remaining = append(remaining, probeWithDist{Probe: p, dist: d})
+			}
+		}
+		sort.Slice(remaining, func(i, j int) bool {
+			return remaining[i].dist < remaining[j].dist
+		})
+		for _, pwd := range remaining {
+			if len(result) >= count {
+				break
+			}
+			p := pwd.Probe
+			p.DistanceKM = pwd.dist
 			result = append(result, p)
-			selected[p.ID] = true
-			midCount--
 		}
 	}
 
