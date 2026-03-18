@@ -98,6 +98,45 @@ graph TB
     style SP fill:#fff3e0
 ```
 
+## Real-World Results
+
+Running from the **Pacific Northwest, US** against 16 probes across 6 continents:
+
+```
+=== GEOLOCATION RESULT ===
+  Verdict:    STATUS_CONFIRMED
+  Location:   Seattle, US (47.64°N, 122.33°W)
+  Accuracy:   ±484 km radius
+
+  Confidence:
+    Physics (speed of light):   100.0%
+    Physics + dataset:          100.0%
+    Nearest probe:              sea-1 (4.8ms → within 479 km)
+
+  Performance:
+    Total time:        969ms
+    Challenge fetch:   11ms (1 gRPC call)
+    Probe pings:       933ms (16 probes × 3 pings = 48 TCP connects, parallel)
+    Submit + compute:  23ms (1 gRPC call)
+    Total requests:    50 (2 gRPC + 48 TCP)
+```
+
+### How Confidence Works
+
+| Layer | What It Proves | Typical Range |
+|-------|---------------|---------------|
+| **Physics (speed of light)** | Max distance from each probe. Cannot be faked — you can't be faster than light in fiber. | Circle radius from RTT. Nearest probe anchors the result. |
+| **Physics + dataset** | Cross-references RTT profile against known city-to-city latencies. Tightens the region estimate. | Adds 5-15% confidence when dataset matches well. |
+
+The system measures RTTs to 30 globally distributed probes (Vultr datacenters), subtracts TCP overhead, and computes the maximum distance you could physically be from each probe. The intersection of all distance circles gives your region. The nearest probe (lowest RTT) provides the tightest constraint.
+
+### What The Numbers Mean
+
+- **±484 km radius**: You are somewhere within a ~500 km circle centered on the estimated location
+- **4.8ms to Seattle probe**: After subtracting ~10ms TCP overhead, this means you're within ~479 km of Seattle's Vultr datacenter
+- **48 TCP connects in 933ms**: All probes pinged in parallel — total time is the slowest probe (Johannesburg at ~300ms × 3 pings), not the sum
+- **2 gRPC calls**: One to fetch the challenge, one to submit measurements. Server computes geolocation in <1ms
+
 ## Quick Start
 
 ### Prerequisites
@@ -191,12 +230,12 @@ ECHOMAP_RIPE_MEASUREMENTS=1001,1002,1003 make server
 
 ## Tests
 
-98 tests across 9 modules, all built test-first (TDD):
+104 tests across 9 modules, all built test-first (TDD):
 
 ```
-internal/geo               — 31 tests (Haversine, circles, jitter CV, VPN detection, probe correlation, dataset integration)
+internal/geo               — 36 tests (Haversine, circles, jitter CV, VPN, correlation, dataset, fallback, 0-0 guard)
 internal/grpcserver        — 13 tests (handlers, replay, spoofing, integration: persistence, rate limiting, VPN, history)
-internal/challenge         — 12 tests (tokens, expiry, single-use, probe selection)
+internal/challenge         — 12 tests (tokens, expiry, single-use, diversity-based probe selection)
 internal/dataset           — 10 tests (CSV parsing, lookup, best-match, region filtering)
 internal/storage           —  8 tests (SQLite CRUD, client history, anomaly logs, suspicious count)
 internal/ratelimit         —  7 tests (sliding window, per-client isolation, gRPC interceptor)

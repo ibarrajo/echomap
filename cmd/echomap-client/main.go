@@ -33,25 +33,25 @@ func main() {
 	defer conn.Close()
 
 	client := echomapv1.NewEchoMapClient(conn)
+	totalStart := time.Now()
 
 	// Step 1: Fetch challenge
-	fmt.Println("Fetching challenge...")
+	challengeStart := time.Now()
 	challenge, err := client.FetchChallenge(context.Background(), &echomapv1.ChallengeRequest{
 		ClientId: clientID,
 	})
 	if err != nil {
 		log.Fatalf("FetchChallenge: %v", err)
 	}
-	fmt.Printf("  Challenge ID: %s\n", challenge.ChallengeId[:16]+"...")
-	fmt.Printf("  Targets: %d probes\n", len(challenge.Targets))
-	fmt.Printf("  Timeout: %dms\n", challenge.TimeoutMs)
+	challengeDur := time.Since(challengeStart)
 
 	// Step 2: Ping all probe targets in parallel
-	fmt.Printf("\nPinging %d probes in parallel...\n", len(challenge.Targets))
+	fmt.Printf("Pinging %d probes in parallel...\n", len(challenge.Targets))
 	type probeResult struct {
 		target *echomapv1.ProbeTarget
 		rtts   []int32
 	}
+	pingStart := time.Now()
 	results := make([]probeResult, len(challenge.Targets))
 	var wg sync.WaitGroup
 	for i, target := range challenge.Targets {
@@ -62,6 +62,7 @@ func main() {
 		}(i, target)
 	}
 	wg.Wait()
+	pingDur := time.Since(pingStart)
 
 	var measurements []*echomapv1.ProbeMeasurement
 	for _, r := range results {
@@ -75,7 +76,7 @@ func main() {
 	}
 
 	// Step 3: Submit measurements
-	fmt.Println("\nSubmitting measurements...")
+	submitStart := time.Now()
 	resp, err := client.SubmitMeasurement(context.Background(), &echomapv1.MeasurementRequest{
 		ChallengeId:  challenge.ChallengeId,
 		Token:        challenge.Token,
@@ -84,14 +85,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("SubmitMeasurement: %v", err)
 	}
+	submitDur := time.Since(submitStart)
+	totalDur := time.Since(totalStart)
 
 	// Step 4: Display results
-	statusName := resp.Verdict.Status.String()
 	fmt.Println("\n=== GEOLOCATION RESULT ===")
-	fmt.Printf("  Verdict:    %s (%.0f%% confidence)\n", statusName, resp.Verdict.Confidence*100)
+	fmt.Printf("  Verdict:    %s\n", resp.Verdict.Status.String())
 	fmt.Printf("  Location:   %s\n", resp.Region.Label)
 	fmt.Printf("  Lat/Lon:    %.4f, %.4f\n", resp.Region.Lat, resp.Region.Lon)
 	fmt.Printf("  Accuracy:   ±%.0f km radius\n", resp.Region.RadiusKm)
+
+	fmt.Println("\n  Confidence:")
+	fmt.Printf("    Physics (speed of light):   %5.1f%%\n", resp.Verdict.PhysicsConfidence*100)
+	fmt.Printf("    Physics + dataset:          %5.1f%%\n", resp.Verdict.Confidence*100)
+
+	fmt.Printf("    Nearest probe:              %s\n", resp.Verdict.NearestProbe)
 
 	// Probe details
 	fmt.Println("\n  Probe Details:")
@@ -123,6 +131,16 @@ func main() {
 			fmt.Println("    ! Physically impossible — RTTs violate speed of light")
 		}
 	}
+
+	// Performance metrics
+	totalPings := len(challenge.Targets) * int(challenge.Targets[0].PingCount)
+	fmt.Println("\n  Performance:")
+	fmt.Printf("    Total time:        %dms\n", totalDur.Milliseconds())
+	fmt.Printf("    Challenge fetch:   %dms (1 gRPC call)\n", challengeDur.Milliseconds())
+	fmt.Printf("    Probe pings:       %dms (%d probes × %d pings = %d TCP connects, parallel)\n",
+		pingDur.Milliseconds(), len(challenge.Targets), challenge.Targets[0].PingCount, totalPings)
+	fmt.Printf("    Submit + compute:  %dms (1 gRPC call)\n", submitDur.Milliseconds())
+	fmt.Printf("    Total requests:    %d (2 gRPC + %d TCP)\n", 2+totalPings, totalPings)
 }
 
 // pingProbe measures RTT to a host:port using TCP connect timing.

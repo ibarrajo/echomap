@@ -140,8 +140,10 @@ func (h *Handler) SubmitMeasurement(ctx context.Context, req *echomapv1.Measurem
 
 	resp := &echomapv1.MeasurementResponse{
 		Verdict: &echomapv1.Verdict{
-			Status:     verdictStatus,
-			Confidence: result.Confidence,
+			Status:            verdictStatus,
+			Confidence:        result.Confidence,
+			PhysicsConfidence: result.PhysicsOnly,
+			NearestProbe:      result.NearestProbe,
 		},
 		Region: &echomapv1.Region{
 			Lat:      result.Region.Lat,

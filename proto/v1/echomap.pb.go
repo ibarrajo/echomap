@@ -453,11 +453,13 @@ func (x *MeasurementResponse) GetSpoofing() *SpoofingIndicators {
 }
 
 type Verdict struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        Status                 `protobuf:"varint,1,opt,name=status,proto3,enum=echomap.v1.Status" json:"status,omitempty"`
-	Confidence    float64                `protobuf:"fixed64,2,opt,name=confidence,proto3" json:"confidence,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Status            Status                 `protobuf:"varint,1,opt,name=status,proto3,enum=echomap.v1.Status" json:"status,omitempty"`
+	Confidence        float64                `protobuf:"fixed64,2,opt,name=confidence,proto3" json:"confidence,omitempty"`
+	PhysicsConfidence float64                `protobuf:"fixed64,3,opt,name=physics_confidence,json=physicsConfidence,proto3" json:"physics_confidence,omitempty"` // Layer 1 only (speed of light)
+	NearestProbe      string                 `protobuf:"bytes,4,opt,name=nearest_probe,json=nearestProbe,proto3" json:"nearest_probe,omitempty"`                  // Probe ID with lowest RTT
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Verdict) Reset() {
@@ -502,6 +504,20 @@ func (x *Verdict) GetConfidence() float64 {
 		return x.Confidence
 	}
 	return 0
+}
+
+func (x *Verdict) GetPhysicsConfidence() float64 {
+	if x != nil {
+		return x.PhysicsConfidence
+	}
+	return 0
+}
+
+func (x *Verdict) GetNearestProbe() string {
+	if x != nil {
+		return x.NearestProbe
+	}
+	return ""
 }
 
 type Region struct {
@@ -804,12 +820,14 @@ const file_proto_v1_echomap_proto_rawDesc = "" +
 	"exclusions\x18\x03 \x03(\v2\x15.echomap.v1.ExclusionR\n" +
 	"exclusions\x12<\n" +
 	"\rprobe_results\x18\x04 \x03(\v2\x17.echomap.v1.ProbeResultR\fprobeResults\x12:\n" +
-	"\bspoofing\x18\x05 \x01(\v2\x1e.echomap.v1.SpoofingIndicatorsR\bspoofing\"U\n" +
+	"\bspoofing\x18\x05 \x01(\v2\x1e.echomap.v1.SpoofingIndicatorsR\bspoofing\"\xa9\x01\n" +
 	"\aVerdict\x12*\n" +
 	"\x06status\x18\x01 \x01(\x0e2\x12.echomap.v1.StatusR\x06status\x12\x1e\n" +
 	"\n" +
 	"confidence\x18\x02 \x01(\x01R\n" +
-	"confidence\"_\n" +
+	"confidence\x12-\n" +
+	"\x12physics_confidence\x18\x03 \x01(\x01R\x11physicsConfidence\x12#\n" +
+	"\rnearest_probe\x18\x04 \x01(\tR\fnearestProbe\"_\n" +
 	"\x06Region\x12\x10\n" +
 	"\x03lat\x18\x01 \x01(\x01R\x03lat\x12\x10\n" +
 	"\x03lon\x18\x02 \x01(\x01R\x03lon\x12\x1b\n" +

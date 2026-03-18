@@ -57,6 +57,8 @@ message MeasurementResponse {
 message Verdict {
   Status status = 1;
   double confidence = 2;
+  double physics_confidence = 3; // Layer 1 only (speed of light)
+  string nearest_probe = 4;      // Probe ID with lowest RTT
 }
 
 enum Status {

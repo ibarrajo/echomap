@@ -51,6 +51,8 @@ type LocateResult struct {
 	Spoofing     SpoofingIndicators
 	ProbeResults []ProbeResult
 	DatasetMatch *DatasetMatchInfo
+	NearestProbe string  // ID of the probe with lowest RTT
+	PhysicsOnly  float64 // confidence from speed-of-light alone (Layer 1)
 }
 
 // DatasetMatchInfo holds the dataset soft-bound result.
@@ -152,12 +154,27 @@ func (e *Engine) Locate(measurements []Measurement) *LocateResult {
 		}
 	}
 
-	// Confidence scoring
+	// Find nearest probe (lowest RTT)
+	nearestProbe := ""
+	lowestRTT := math.MaxFloat64
+	for _, pr := range probeResults {
+		if pr.RTTMS < lowestRTT {
+			lowestRTT = pr.RTTMS
+			nearestProbe = pr.ProbeID
+		}
+	}
+
+	// Physics-only confidence (Layer 1 only, no dataset)
+	physicsOnly := e.score(region, len(measurements), anyJitterBad, ratioOK, nil)
+
+	// Full confidence (physics + dataset)
 	confidence := e.score(region, len(measurements), anyJitterBad, ratioOK, dsMatch)
 
 	return &LocateResult{
 		Region:       region,
 		Confidence:   confidence,
+		PhysicsOnly:  physicsOnly,
+		NearestProbe: nearestProbe,
 		Exclusions:   exclusions,
 		DatasetMatch: dsMatch,
 		Spoofing: SpoofingIndicators{
