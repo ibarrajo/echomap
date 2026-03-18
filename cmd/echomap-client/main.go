@@ -35,13 +35,16 @@ func main() {
 	client := echomapv1.NewEchoMapClient(conn)
 	totalStart := time.Now()
 
-	// Step 1: Fetch challenge
+	// Step 1: Fetch challenge (server issues a single-use, time-limited token)
 	challengeStart := time.Now()
 	challenge, err := client.FetchChallenge(context.Background(), &echomapv1.ChallengeRequest{
 		ClientId: clientID,
 	})
 	if err != nil {
-		log.Fatalf("FetchChallenge: %v", err)
+		fmt.Fprintf(os.Stderr, "\nError: cannot reach EchoMap server at %s\n", serverAddr)
+		fmt.Fprintf(os.Stderr, "  %v\n", err)
+		fmt.Fprintf(os.Stderr, "\nMake sure the server is running: make server\n")
+		os.Exit(1)
 	}
 	challengeDur := time.Since(challengeStart)
 
@@ -83,7 +86,13 @@ func main() {
 		Measurements: measurements,
 	})
 	if err != nil {
-		log.Fatalf("SubmitMeasurement: %v", err)
+		fmt.Fprintf(os.Stderr, "\nError: measurement submission rejected\n")
+		fmt.Fprintf(os.Stderr, "  %v\n", err)
+		fmt.Fprintf(os.Stderr, "\nThis can happen if:\n")
+		fmt.Fprintf(os.Stderr, "  - The challenge token expired (>10s between fetch and submit)\n")
+		fmt.Fprintf(os.Stderr, "  - The token was already used (tokens are single-use)\n")
+		fmt.Fprintf(os.Stderr, "  - The token was tampered with\n")
+		os.Exit(1)
 	}
 	submitDur := time.Since(submitStart)
 	totalDur := time.Since(totalStart)
@@ -106,7 +115,11 @@ func main() {
 			if resp.DatasetMatch.City != "" {
 				fmt.Printf("\n  Network Latency Match (Layer 2):\n")
 				fmt.Printf("    Best match city:  %s\n", resp.DatasetMatch.City)
-				fmt.Printf("    Match quality:    %.1f%% (lower error = better)\n", (1-resp.DatasetMatch.MatchError)*100)
+				quality := (1 - resp.DatasetMatch.MatchError) * 100
+				if quality < 0 {
+					quality = 0
+				}
+				fmt.Printf("    Match quality:    %.1f%%\n", quality)
 			}
 		} else {
 			fmt.Printf("\n  Network Latency Match: (no dataset loaded — using physics only)\n")

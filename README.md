@@ -156,7 +156,7 @@ make server
 # In another terminal — run client
 make client
 
-# Run tests (59 tests)
+# Run tests
 make test
 ```
 
@@ -205,6 +205,41 @@ echomap/
 | **Replay** | Stale token | Rejected — tokens are single-use, 10s TTL |
 | **Claim wrong city** | RTT ratios don't match | Flagged as `SUSPICIOUS` by dataset matching |
 
+## Challenge Token Security
+
+Every geolocation check is bound to a **single-use, time-limited HMAC token**:
+
+```
+Client                          Server
+  │                               │
+  ├── FetchChallenge(client_id) ──►│  Server generates:
+  │                               │    - Random challenge_id
+  │                               │    - HMAC token = sign(challenge_id + client_id + expiry)
+  │◄── challenge_id + token ──────│    - Stores token, sets 10s TTL
+  │                               │
+  │  (client pings probes)        │
+  │                               │
+  ├── SubmitMeasurement ──────────►│  Server validates:
+  │   challenge_id + token        │    1. Challenge ID exists?     → reject if unknown
+  │   + RTT measurements          │    2. Token matches HMAC?      → reject if tampered
+  │                               │    3. Token expired (>10s)?    → reject if stale
+  │                               │    4. Token already used?      → reject (single-use)
+  │                               │    5. Delete token (consumed)
+  │◄── verdict ───────────────────│
+```
+
+**What this prevents:**
+
+| Attack | How Token Stops It |
+|--------|-------------------|
+| **Replay** | Tokens are consumed on first use — same measurements can't be submitted twice |
+| **Pre-computation** | Tokens expire in 10s — can't pre-measure and submit later |
+| **Token sharing** | HMAC binds token to specific challenge_id — can't reuse across sessions |
+| **Token forgery** | HMAC requires server secret — can't generate valid tokens client-side |
+| **Brute force** | Rate limiter: 10 challenges/minute per client |
+
+Tested with 8 dedicated token security tests: unknown challenge, tampered token, swapped tokens between sessions, double-submit replay, empty client ID, expiry bounds, and probe target validation.
+
 ## Latency Datasets
 
 ### Free (built-in, no signup required)
@@ -230,11 +265,11 @@ ECHOMAP_RIPE_MEASUREMENTS=1001,1002,1003 make server
 
 ## Tests
 
-104 tests across 9 modules, all built test-first (TDD):
+111 tests across 9 modules, all built test-first (TDD):
 
 ```
 internal/geo               — 36 tests (Haversine, circles, jitter CV, VPN, correlation, dataset, fallback, 0-0 guard)
-internal/grpcserver        — 13 tests (handlers, replay, spoofing, integration: persistence, rate limiting, VPN, history)
+internal/grpcserver        — 20 tests (handlers, token security, replay, spoofing, integration: storage, rate limit, VPN)
 internal/challenge         — 12 tests (tokens, expiry, single-use, diversity-based probe selection)
 internal/dataset           — 10 tests (CSV parsing, lookup, best-match, region filtering)
 internal/storage           —  8 tests (SQLite CRUD, client history, anomaly logs, suspicious count)
