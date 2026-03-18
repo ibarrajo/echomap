@@ -14,10 +14,11 @@ type Config struct {
 	PingCount       int
 	TimeoutMS       int
 	HMACSecret      string
-	DBPath          string
-	RateLimitMax    int
-	RateLimitWindow time.Duration
-	DatasetPath     string
+	DBPath             string
+	RateLimitMax       int
+	RateLimitWindow    time.Duration
+	DatasetPath        string
+	RipeMeasurements   string
 }
 
 // New creates a Config, reading from environment variables with sensible defaults.
@@ -32,7 +33,8 @@ func New() Config {
 		DBPath:          envString("ECHOMAP_DB_PATH", "echomap.db"),
 		RateLimitMax:    envInt("ECHOMAP_RATE_LIMIT_MAX", 10),
 		RateLimitWindow: envDuration("ECHOMAP_RATE_LIMIT_WINDOW", time.Minute),
-		DatasetPath:     envString("ECHOMAP_DATASET_PATH", ""),
+		DatasetPath:        envString("ECHOMAP_DATASET_PATH", ""),
+		RipeMeasurements:   envString("ECHOMAP_RIPE_MEASUREMENTS", ""),
 	}
 }
 

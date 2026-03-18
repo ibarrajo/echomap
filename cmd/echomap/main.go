@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
+	"strings"
 
 	"github.com/elninja/echomap/internal/challenge"
 	"github.com/elninja/echomap/internal/config"
 	"github.com/elninja/echomap/internal/dataset"
+	"github.com/elninja/echomap/internal/dataset/ripeatlas"
 	"github.com/elninja/echomap/internal/geo"
 	"github.com/elninja/echomap/internal/grpcserver"
 	"github.com/elninja/echomap/internal/ratelimit"
@@ -46,21 +49,55 @@ func provideChallengeManager(cfg config.Config) *challenge.Manager {
 func provideEngine(cfg config.Config, logger *zap.Logger) *geo.Engine {
 	var opts []geo.EngineOption
 
+	// Try CSV dataset first (WonderNetwork)
 	if cfg.DatasetPath != "" {
 		ds, err := dataset.LoadCSV(cfg.DatasetPath)
 		if err != nil {
-			logger.Warn("failed to load dataset, running without soft bounds",
+			logger.Warn("failed to load CSV dataset",
 				zap.String("path", cfg.DatasetPath), zap.Error(err))
 		} else {
 			opts = append(opts, geo.WithDataset(ds))
-			logger.Info("loaded latency dataset",
+			logger.Info("loaded CSV latency dataset",
 				zap.String("path", cfg.DatasetPath),
 				zap.Int("entries", ds.EntryCount()),
 				zap.Int("cities", len(ds.Cities())))
 		}
 	}
 
+	// Try RIPE Atlas (free, no signup)
+	if cfg.RipeMeasurements != "" && cfg.DatasetPath == "" {
+		ids := parseIntList(cfg.RipeMeasurements)
+		if len(ids) > 0 {
+			ripeClient := ripeatlas.NewClient()
+			ds, err := ripeClient.BuildDataset(context.Background(), ids)
+			if err != nil {
+				logger.Warn("failed to load RIPE Atlas data, running without soft bounds",
+					zap.Error(err))
+			} else {
+				opts = append(opts, geo.WithDataset(ds))
+				logger.Info("loaded RIPE Atlas dataset",
+					zap.Int("measurements", len(ids)),
+					zap.Int("entries", ds.EntryCount()))
+			}
+		}
+	}
+
 	return geo.NewEngine(opts...)
+}
+
+func parseIntList(s string) []int {
+	var result []int
+	for _, part := range strings.Split(s, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		n, err := strconv.Atoi(part)
+		if err == nil {
+			result = append(result, n)
+		}
+	}
+	return result
 }
 
 func provideStorage(cfg config.Config, logger *zap.Logger) *storage.Repository {

@@ -29,6 +29,38 @@ type RTTRange struct {
 // MatchResult is the output of BestMatch (also satisfies geo.DatasetMatchResult).
 type MatchResult = geo.DatasetMatchResult
 
+// RawEntry is an input record for building a Dataset programmatically.
+type RawEntry struct {
+	SrcName string
+	DstName string
+	SrcLat  float64
+	SrcLon  float64
+	DstLat  float64
+	DstLon  float64
+	AvgMS   float64
+	MinMS   float64
+	MaxMS   float64
+}
+
+// FromEntries builds a Dataset from raw entries (used by API adapters).
+func FromEntries(entries []RawEntry) *Dataset {
+	ds := &Dataset{
+		entries: make(map[string]RTTRange),
+		cities:  make(map[string]City),
+	}
+	for _, e := range entries {
+		key := pairKey(e.SrcName, e.DstName)
+		ds.entries[key] = RTTRange{AvgMS: e.AvgMS, MinMS: e.MinMS, MaxMS: e.MaxMS}
+		if e.SrcLat != 0 || e.SrcLon != 0 {
+			ds.cities[e.SrcName] = City{Name: e.SrcName, Lat: e.SrcLat, Lon: e.SrcLon}
+		}
+		if e.DstLat != 0 || e.DstLon != 0 {
+			ds.cities[e.DstName] = City{Name: e.DstName, Lat: e.DstLat, Lon: e.DstLon}
+		}
+	}
+	return ds
+}
+
 // Dataset holds parsed latency data for city-to-city lookups.
 type Dataset struct {
 	entries map[string]RTTRange // key: "CityA|CityB" (sorted alphabetically)

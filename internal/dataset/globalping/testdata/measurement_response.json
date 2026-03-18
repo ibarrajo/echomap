@@ -1,0 +1,107 @@
+{
+  "id": "abc123",
+  "type": "ping",
+  "status": "finished",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:05.000Z",
+  "target": "198.51.100.1",
+  "probesCount": 3,
+  "results": [
+    {
+      "probe": {
+        "continent": "EU",
+        "region": "Western Europe",
+        "country": "NL",
+        "city": "Amsterdam",
+        "asn": 3333,
+        "network": "RIPE NCC",
+        "latitude": 52.3676,
+        "longitude": 4.9041
+      },
+      "result": {
+        "status": "finished",
+        "rawOutput": "PING 198.51.100.1 (198.51.100.1) 56(84) bytes of data.\n64 bytes from 198.51.100.1: icmp_seq=1 ttl=56 time=7.52 ms\n64 bytes from 198.51.100.1: icmp_seq=2 ttl=56 time=8.10 ms\n64 bytes from 198.51.100.1: icmp_seq=3 ttl=56 time=7.89 ms",
+        "resolvedAddress": "198.51.100.1",
+        "resolvedHostname": "fra-probe.example.com",
+        "timings": [
+          {"rtt": 7.52},
+          {"rtt": 8.10},
+          {"rtt": 7.89}
+        ],
+        "stats": {
+          "min": 7.52,
+          "max": 8.10,
+          "avg": 7.836,
+          "total": 3,
+          "rcv": 3,
+          "drop": 0,
+          "loss": 0.0
+        }
+      }
+    },
+    {
+      "probe": {
+        "continent": "NA",
+        "region": "Northern America",
+        "country": "US",
+        "city": "New York",
+        "asn": 15169,
+        "network": "Google",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "result": {
+        "status": "finished",
+        "rawOutput": "",
+        "resolvedAddress": "198.51.100.1",
+        "resolvedHostname": "fra-probe.example.com",
+        "timings": [
+          {"rtt": 85.3},
+          {"rtt": 87.1},
+          {"rtt": 86.2}
+        ],
+        "stats": {
+          "min": 85.3,
+          "max": 87.1,
+          "avg": 86.2,
+          "total": 3,
+          "rcv": 3,
+          "drop": 0,
+          "loss": 0.0
+        }
+      }
+    },
+    {
+      "probe": {
+        "continent": "AS",
+        "region": "Eastern Asia",
+        "country": "JP",
+        "city": "Tokyo",
+        "asn": 2497,
+        "network": "IIJ",
+        "latitude": 35.6762,
+        "longitude": 139.6503
+      },
+      "result": {
+        "status": "finished",
+        "rawOutput": "",
+        "resolvedAddress": "198.51.100.1",
+        "resolvedHostname": "fra-probe.example.com",
+        "timings": [
+          {"rtt": 245.0},
+          {"rtt": 248.3},
+          {"rtt": 246.1}
+        ],
+        "stats": {
+          "min": 245.0,
+          "max": 248.3,
+          "avg": 246.46,
+          "total": 3,
+          "rcv": 3,
+          "drop": 0,
+          "loss": 0.0
+        }
+      }
+    }
+  ]
+}

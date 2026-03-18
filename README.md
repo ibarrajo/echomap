@@ -135,6 +135,7 @@ make test
 | `ECHOMAP_RATE_LIMIT_MAX` | `10` | Max requests per window per client |
 | `ECHOMAP_RATE_LIMIT_WINDOW` | `1m` | Rate limit window duration |
 | `ECHOMAP_DATASET_PATH` | (none) | Path to WonderNetwork CSV for soft bounds |
+| `ECHOMAP_RIPE_MEASUREMENTS` | (none) | Comma-separated RIPE Atlas measurement IDs to fetch at startup |
 
 ## Project Structure
 
@@ -167,27 +168,41 @@ echomap/
 
 ## Latency Datasets
 
-EchoMap uses free, public latency datasets for Layer 2 soft-bound matching:
+### Free (built-in, no signup required)
 
-| Dataset | Coverage | Format |
-|---------|----------|--------|
-| [WonderNetwork](https://wondernetwork.com/pings) | 240+ cities, monthly | CSV |
-| [RIPE Atlas](https://atlas.ripe.net/) | 12,000+ probes, continuous | JSON API |
-| [Globalping](https://www.globalping.io/) | 800+ probes, real-time | JSON API |
-| [CAIDA Ark](https://www.caida.org/catalog/datasets/ark-ipv4/) | Internet topology | Custom |
+| Dataset | How EchoMap Uses It | Limits |
+|---------|-------------------|--------|
+| [RIPE Atlas](https://atlas.ripe.net/) | Built-in adapter fetches historical ping data from 12,000+ global probes. Set `ECHOMAP_RIPE_MEASUREMENTS` to a comma-separated list of measurement IDs. | 300 req/s, no auth needed |
+| [Globalping](https://www.globalping.io/) | Built-in adapter runs live pings from 800+ probes for real-time cross-validation. Works out of the box. | 250 tests/hr, no auth needed |
+
+```bash
+# Use RIPE Atlas historical data (free, no signup)
+ECHOMAP_RIPE_MEASUREMENTS=1001,1002,1003 make server
+
+# Globalping is used automatically for live cross-validation
+```
+
+### Optional (requires download or account)
+
+| Dataset | Setup | Notes |
+|---------|-------|-------|
+| [WonderNetwork](https://wondernetwork.com/pings) | Download CSV manually, set `ECHOMAP_DATASET_PATH=./data/pings.csv` | Free historical snapshot from 2020. Monthly updates require paid account. "Please don't scrape." |
+| [CAIDA Ark](https://www.caida.org/catalog/datasets/ark-ipv4/) | Download `.warts` files, convert with `sc_warts2json` | Traceroute topology, not ping latency. Academic/research focus. Recent IPv4 data is restricted. |
 
 ## Tests
 
-90 tests across 7 modules, all built test-first (TDD):
+98 tests across 9 modules, all built test-first (TDD):
 
 ```
-internal/geo          — 31 tests (Haversine, circles, jitter CV, VPN detection, probe correlation, dataset integration)
-internal/challenge    — 12 tests (tokens, expiry, single-use, probe selection)
-internal/dataset      — 10 tests (CSV parsing, lookup, best-match, region filtering)
-internal/grpcserver   — 13 tests (handlers, replay, spoofing, integration: persistence, rate limiting, VPN, history)
-internal/storage      —  8 tests (SQLite CRUD, client history, anomaly logs, suspicious count)
-internal/ratelimit    —  7 tests (sliding window, per-client isolation, gRPC interceptor)
-internal/config       —  4 tests (defaults, env overrides, invalid input)
+internal/geo               — 31 tests (Haversine, circles, jitter CV, VPN detection, probe correlation, dataset integration)
+internal/grpcserver        — 13 tests (handlers, replay, spoofing, integration: persistence, rate limiting, VPN, history)
+internal/challenge         — 12 tests (tokens, expiry, single-use, probe selection)
+internal/dataset           — 10 tests (CSV parsing, lookup, best-match, region filtering)
+internal/storage           —  8 tests (SQLite CRUD, client history, anomaly logs, suspicious count)
+internal/ratelimit         —  7 tests (sliding window, per-client isolation, gRPC interceptor)
+internal/dataset/ripeatlas —  4 tests (RIPE Atlas API parsing, probe coords, dataset building)
+internal/dataset/globalping—  4 tests (Globalping API, probe results, end-to-end ping)
+internal/config            —  4 tests (defaults, env overrides, invalid input)
 ```
 
 ## License

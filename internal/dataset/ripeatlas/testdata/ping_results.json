@@ -1,0 +1,77 @@
+[
+  {
+    "fw": 5080,
+    "from": "192.0.2.1",
+    "msm_id": 1001,
+    "probe_id": 6001,
+    "timestamp": 1710000000,
+    "dst_addr": "198.51.100.1",
+    "dst_name": "fra-probe.example.com",
+    "src_addr": "192.0.2.1",
+    "proto": "ICMP",
+    "af": 4,
+    "type": "ping",
+    "result": [
+      {"rtt": 7.523},
+      {"rtt": 8.102},
+      {"rtt": 7.891}
+    ],
+    "min": 7.523,
+    "max": 8.102,
+    "avg": 7.838,
+    "rcvd": 3,
+    "sent": 3,
+    "dup": 0,
+    "ttl": 56
+  },
+  {
+    "fw": 5080,
+    "from": "192.0.2.1",
+    "msm_id": 1002,
+    "probe_id": 6001,
+    "timestamp": 1710000060,
+    "dst_addr": "198.51.100.2",
+    "dst_name": "lhr-probe.example.com",
+    "src_addr": "192.0.2.1",
+    "proto": "ICMP",
+    "af": 4,
+    "type": "ping",
+    "result": [
+      {"rtt": 12.45},
+      {"rtt": 13.21},
+      {"rtt": 12.88}
+    ],
+    "min": 12.45,
+    "max": 13.21,
+    "avg": 12.846,
+    "rcvd": 3,
+    "sent": 3,
+    "dup": 0,
+    "ttl": 54
+  },
+  {
+    "fw": 5080,
+    "from": "192.0.2.2",
+    "msm_id": 1001,
+    "probe_id": 6002,
+    "timestamp": 1710000000,
+    "dst_addr": "198.51.100.1",
+    "dst_name": "fra-probe.example.com",
+    "src_addr": "192.0.2.2",
+    "proto": "ICMP",
+    "af": 4,
+    "type": "ping",
+    "result": [
+      {"rtt": 85.3},
+      {"rtt": 87.1},
+      {"rtt": 86.2}
+    ],
+    "min": 85.3,
+    "max": 87.1,
+    "avg": 86.2,
+    "rcvd": 3,
+    "sent": 3,
+    "dup": 0,
+    "ttl": 48
+  }
+]
