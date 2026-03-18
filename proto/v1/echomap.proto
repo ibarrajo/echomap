@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package echomap.v1;
+
+option go_package = "github.com/elninja/echomap/proto/v1;echomapv1";
+
+service EchoMap {
+  // Get a challenge with probe targets to ping
+  rpc FetchChallenge(ChallengeRequest) returns (ChallengeResponse);
+
+  // Submit measured latencies for geolocation calculation
+  rpc SubmitMeasurement(MeasurementRequest) returns (MeasurementResponse);
+}
+
+// --- Request/Response ---
+
+message ChallengeRequest {
+  string client_id = 1;
+}
+
+message ChallengeResponse {
+  string challenge_id = 1;
+  repeated ProbeTarget targets = 2;
+  int32 timeout_ms = 3;
+  int64 expires_at = 4;
+  string token = 5;
+}
+
+message ProbeTarget {
+  string id = 1;
+  string host = 2;
+  int32 port = 3;
+  int32 ping_count = 4;
+}
+
+message MeasurementRequest {
+  string challenge_id = 1;
+  string token = 2;
+  repeated ProbeMeasurement measurements = 3;
+}
+
+message ProbeMeasurement {
+  string probe_id = 1;
+  repeated int32 rtts_us = 2;
+}
+
+message MeasurementResponse {
+  Verdict verdict = 1;
+  Region region = 2;
+  repeated Exclusion exclusions = 3;
+  repeated ProbeResult probe_results = 4;
+  SpoofingIndicators spoofing = 5;
+}
+
+// --- Types ---
+
+message Verdict {
+  Status status = 1;
+  double confidence = 2;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_CONFIRMED = 1;
+  STATUS_PLAUSIBLE = 2;
+  STATUS_SUSPICIOUS = 3;
+  STATUS_REJECTED = 4;
+}
+
+message Region {
+  double lat = 1;
+  double lon = 2;
+  double radius_km = 3;
+  string label = 4;
+}
+
+message Exclusion {
+  string region = 1;
+  double confidence = 2;
+}
+
+message ProbeResult {
+  string probe_id = 1;
+  double rtt_ms = 2;
+  double jitter_ms = 3;
+  double max_distance_km = 4;
+  double dataset_expected_ms = 5;
+}
+
+message SpoofingIndicators {
+  bool vpn_likely = 1;
+  bool jitter_abnormal = 2;
+  bool ratio_inconsistent = 3;
+  bool physically_impossible = 4;
+}
