@@ -3,6 +3,7 @@ package dataset
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"sort"
@@ -74,15 +75,19 @@ func pairKey(a, b string) string {
 	return a + "|" + b
 }
 
-// LoadCSV parses a WonderNetwork-style CSV into a Dataset.
+// LoadCSV parses a WonderNetwork-style CSV file into a Dataset.
 func LoadCSV(path string) (*Dataset, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", path, err)
 	}
 	defer f.Close()
+	return LoadCSVFromReader(f)
+}
 
-	reader := csv.NewReader(f)
+// LoadCSVFromReader parses a WonderNetwork-style CSV from any io.Reader.
+func LoadCSVFromReader(r io.Reader) (*Dataset, error) {
+	reader := csv.NewReader(r)
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, fmt.Errorf("parse CSV: %w", err)

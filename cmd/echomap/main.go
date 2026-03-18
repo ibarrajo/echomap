@@ -49,7 +49,7 @@ func provideChallengeManager(cfg config.Config) *challenge.Manager {
 func provideEngine(cfg config.Config, logger *zap.Logger) *geo.Engine {
 	var opts []geo.EngineOption
 
-	// Try CSV dataset first (WonderNetwork)
+	// Priority 1: External CSV (WonderNetwork or custom)
 	if cfg.DatasetPath != "" {
 		ds, err := dataset.LoadCSV(cfg.DatasetPath)
 		if err != nil {
@@ -57,29 +57,41 @@ func provideEngine(cfg config.Config, logger *zap.Logger) *geo.Engine {
 				zap.String("path", cfg.DatasetPath), zap.Error(err))
 		} else {
 			opts = append(opts, geo.WithDataset(ds))
-			logger.Info("loaded CSV latency dataset",
+			logger.Info("loaded external CSV dataset",
 				zap.String("path", cfg.DatasetPath),
 				zap.Int("entries", ds.EntryCount()),
 				zap.Int("cities", len(ds.Cities())))
+			return geo.NewEngine(opts...)
 		}
 	}
 
-	// Try RIPE Atlas (free, no signup)
-	if cfg.RipeMeasurements != "" && cfg.DatasetPath == "" {
+	// Priority 2: RIPE Atlas (free, no signup)
+	if cfg.RipeMeasurements != "" {
 		ids := parseIntList(cfg.RipeMeasurements)
 		if len(ids) > 0 {
 			ripeClient := ripeatlas.NewClient()
 			ds, err := ripeClient.BuildDataset(context.Background(), ids)
 			if err != nil {
-				logger.Warn("failed to load RIPE Atlas data, running without soft bounds",
-					zap.Error(err))
+				logger.Warn("failed to load RIPE Atlas data", zap.Error(err))
 			} else {
 				opts = append(opts, geo.WithDataset(ds))
 				logger.Info("loaded RIPE Atlas dataset",
 					zap.Int("measurements", len(ids)),
 					zap.Int("entries", ds.EntryCount()))
+				return geo.NewEngine(opts...)
 			}
 		}
+	}
+
+	// Priority 3: Built-in embedded dataset (ships with binary)
+	ds, err := dataset.LoadEmbedded()
+	if err != nil {
+		logger.Warn("failed to load embedded dataset", zap.Error(err))
+	} else {
+		opts = append(opts, geo.WithDataset(ds))
+		logger.Info("loaded embedded latency dataset",
+			zap.Int("entries", ds.EntryCount()),
+			zap.Int("cities", len(ds.Cities())))
 	}
 
 	return geo.NewEngine(opts...)

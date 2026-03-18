@@ -50,6 +50,15 @@ message MeasurementResponse {
   repeated Exclusion exclusions = 3;
   repeated ProbeResult probe_results = 4;
   SpoofingIndicators spoofing = 5;
+  DatasetMatch dataset_match = 6;
+}
+
+message DatasetMatch {
+  string city = 1;
+  double lat = 2;
+  double lon = 3;
+  double match_error = 4;       // normalized error (lower = better match)
+  bool dataset_loaded = 5;      // whether a dataset was available
 }
 
 // --- Types ---

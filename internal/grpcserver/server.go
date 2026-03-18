@@ -159,6 +159,7 @@ func (h *Handler) SubmitMeasurement(ctx context.Context, req *echomapv1.Measurem
 			RatioInconsistent:    !correlation.Consistent || result.Spoofing.RatioInconsistent,
 			PhysicallyImpossible: result.Spoofing.PhysicallyImpossible,
 		},
+		DatasetMatch: buildDatasetMatch(result),
 	}
 
 	// Persist result + anomalies if storage is configured
@@ -220,4 +221,17 @@ func (h *Handler) buildProbeMap() map[string]challenge.Probe {
 		m[p.ID] = p
 	}
 	return m
+}
+
+func buildDatasetMatch(result *geo.LocateResult) *echomapv1.DatasetMatch {
+	if result.DatasetMatch != nil {
+		return &echomapv1.DatasetMatch{
+			City:          result.DatasetMatch.City,
+			Lat:           result.DatasetMatch.Lat,
+			Lon:           result.DatasetMatch.Lon,
+			MatchError:    result.DatasetMatch.Error,
+			DatasetLoaded: true,
+		}
+	}
+	return &echomapv1.DatasetMatch{DatasetLoaded: false}
 }

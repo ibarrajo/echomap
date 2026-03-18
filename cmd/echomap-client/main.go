@@ -97,16 +97,41 @@ func main() {
 
 	fmt.Println("\n  Confidence:")
 	fmt.Printf("    Physics (speed of light):   %5.1f%%\n", resp.Verdict.PhysicsConfidence*100)
-	fmt.Printf("    Physics + dataset:          %5.1f%%\n", resp.Verdict.Confidence*100)
-
+	fmt.Printf("    Physics + network latency:  %5.1f%%\n", resp.Verdict.Confidence*100)
 	fmt.Printf("    Nearest probe:              %s\n", resp.Verdict.NearestProbe)
 
+	// Dataset match
+	if resp.DatasetMatch != nil {
+		if resp.DatasetMatch.DatasetLoaded {
+			if resp.DatasetMatch.City != "" {
+				fmt.Printf("\n  Network Latency Match (Layer 2):\n")
+				fmt.Printf("    Best match city:  %s\n", resp.DatasetMatch.City)
+				fmt.Printf("    Match quality:    %.1f%% (lower error = better)\n", (1-resp.DatasetMatch.MatchError)*100)
+			}
+		} else {
+			fmt.Printf("\n  Network Latency Match: (no dataset loaded — using physics only)\n")
+		}
+	}
+
 	// Probe details
+	hasDataset := resp.DatasetMatch != nil && resp.DatasetMatch.DatasetLoaded
 	fmt.Println("\n  Probe Details:")
-	fmt.Printf("  %-8s  %-10s  %-12s  %s\n", "PROBE", "RTT", "MAX DIST", "SPEED-OF-LIGHT BOUND")
-	for _, pr := range resp.ProbeResults {
-		fmt.Printf("  %-8s  %7.1fms  %8.0f km   You are within %.0f km of this probe\n",
-			pr.ProbeId, pr.RttMs, pr.MaxDistanceKm, pr.MaxDistanceKm)
+	if hasDataset {
+		fmt.Printf("  %-8s  %9s  %9s  %10s  %s\n", "PROBE", "RTT", "EXPECTED", "MAX DIST", "BOUND")
+		for _, pr := range resp.ProbeResults {
+			expected := "     -"
+			if pr.DatasetExpectedMs > 0 {
+				expected = fmt.Sprintf("%6.1fms", pr.DatasetExpectedMs)
+			}
+			fmt.Printf("  %-8s  %7.1fms  %s  %8.0f km   within %.0f km\n",
+				pr.ProbeId, pr.RttMs, expected, pr.MaxDistanceKm, pr.MaxDistanceKm)
+		}
+	} else {
+		fmt.Printf("  %-8s  %9s  %10s  %s\n", "PROBE", "RTT", "MAX DIST", "BOUND")
+		for _, pr := range resp.ProbeResults {
+			fmt.Printf("  %-8s  %7.1fms  %8.0f km   within %.0f km\n",
+				pr.ProbeId, pr.RttMs, pr.MaxDistanceKm, pr.MaxDistanceKm)
+		}
 	}
 
 	if len(resp.Exclusions) > 0 {

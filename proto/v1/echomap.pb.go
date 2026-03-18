@@ -383,6 +383,7 @@ type MeasurementResponse struct {
 	Exclusions    []*Exclusion           `protobuf:"bytes,3,rep,name=exclusions,proto3" json:"exclusions,omitempty"`
 	ProbeResults  []*ProbeResult         `protobuf:"bytes,4,rep,name=probe_results,json=probeResults,proto3" json:"probe_results,omitempty"`
 	Spoofing      *SpoofingIndicators    `protobuf:"bytes,5,opt,name=spoofing,proto3" json:"spoofing,omitempty"`
+	DatasetMatch  *DatasetMatch          `protobuf:"bytes,6,opt,name=dataset_match,json=datasetMatch,proto3" json:"dataset_match,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -452,6 +453,89 @@ func (x *MeasurementResponse) GetSpoofing() *SpoofingIndicators {
 	return nil
 }
 
+func (x *MeasurementResponse) GetDatasetMatch() *DatasetMatch {
+	if x != nil {
+		return x.DatasetMatch
+	}
+	return nil
+}
+
+type DatasetMatch struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	City          string                 `protobuf:"bytes,1,opt,name=city,proto3" json:"city,omitempty"`
+	Lat           float64                `protobuf:"fixed64,2,opt,name=lat,proto3" json:"lat,omitempty"`
+	Lon           float64                `protobuf:"fixed64,3,opt,name=lon,proto3" json:"lon,omitempty"`
+	MatchError    float64                `protobuf:"fixed64,4,opt,name=match_error,json=matchError,proto3" json:"match_error,omitempty"`         // normalized error (lower = better match)
+	DatasetLoaded bool                   `protobuf:"varint,5,opt,name=dataset_loaded,json=datasetLoaded,proto3" json:"dataset_loaded,omitempty"` // whether a dataset was available
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DatasetMatch) Reset() {
+	*x = DatasetMatch{}
+	mi := &file_proto_v1_echomap_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DatasetMatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DatasetMatch) ProtoMessage() {}
+
+func (x *DatasetMatch) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_v1_echomap_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DatasetMatch.ProtoReflect.Descriptor instead.
+func (*DatasetMatch) Descriptor() ([]byte, []int) {
+	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *DatasetMatch) GetCity() string {
+	if x != nil {
+		return x.City
+	}
+	return ""
+}
+
+func (x *DatasetMatch) GetLat() float64 {
+	if x != nil {
+		return x.Lat
+	}
+	return 0
+}
+
+func (x *DatasetMatch) GetLon() float64 {
+	if x != nil {
+		return x.Lon
+	}
+	return 0
+}
+
+func (x *DatasetMatch) GetMatchError() float64 {
+	if x != nil {
+		return x.MatchError
+	}
+	return 0
+}
+
+func (x *DatasetMatch) GetDatasetLoaded() bool {
+	if x != nil {
+		return x.DatasetLoaded
+	}
+	return false
+}
+
 type Verdict struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Status            Status                 `protobuf:"varint,1,opt,name=status,proto3,enum=echomap.v1.Status" json:"status,omitempty"`
@@ -464,7 +548,7 @@ type Verdict struct {
 
 func (x *Verdict) Reset() {
 	*x = Verdict{}
-	mi := &file_proto_v1_echomap_proto_msgTypes[6]
+	mi := &file_proto_v1_echomap_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -476,7 +560,7 @@ func (x *Verdict) String() string {
 func (*Verdict) ProtoMessage() {}
 
 func (x *Verdict) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_echomap_proto_msgTypes[6]
+	mi := &file_proto_v1_echomap_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -489,7 +573,7 @@ func (x *Verdict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Verdict.ProtoReflect.Descriptor instead.
 func (*Verdict) Descriptor() ([]byte, []int) {
-	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{6}
+	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Verdict) GetStatus() Status {
@@ -532,7 +616,7 @@ type Region struct {
 
 func (x *Region) Reset() {
 	*x = Region{}
-	mi := &file_proto_v1_echomap_proto_msgTypes[7]
+	mi := &file_proto_v1_echomap_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -544,7 +628,7 @@ func (x *Region) String() string {
 func (*Region) ProtoMessage() {}
 
 func (x *Region) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_echomap_proto_msgTypes[7]
+	mi := &file_proto_v1_echomap_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -557,7 +641,7 @@ func (x *Region) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Region.ProtoReflect.Descriptor instead.
 func (*Region) Descriptor() ([]byte, []int) {
-	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{7}
+	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Region) GetLat() float64 {
@@ -598,7 +682,7 @@ type Exclusion struct {
 
 func (x *Exclusion) Reset() {
 	*x = Exclusion{}
-	mi := &file_proto_v1_echomap_proto_msgTypes[8]
+	mi := &file_proto_v1_echomap_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -610,7 +694,7 @@ func (x *Exclusion) String() string {
 func (*Exclusion) ProtoMessage() {}
 
 func (x *Exclusion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_echomap_proto_msgTypes[8]
+	mi := &file_proto_v1_echomap_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -623,7 +707,7 @@ func (x *Exclusion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Exclusion.ProtoReflect.Descriptor instead.
 func (*Exclusion) Descriptor() ([]byte, []int) {
-	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{8}
+	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Exclusion) GetRegion() string {
@@ -653,7 +737,7 @@ type ProbeResult struct {
 
 func (x *ProbeResult) Reset() {
 	*x = ProbeResult{}
-	mi := &file_proto_v1_echomap_proto_msgTypes[9]
+	mi := &file_proto_v1_echomap_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -665,7 +749,7 @@ func (x *ProbeResult) String() string {
 func (*ProbeResult) ProtoMessage() {}
 
 func (x *ProbeResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_echomap_proto_msgTypes[9]
+	mi := &file_proto_v1_echomap_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -678,7 +762,7 @@ func (x *ProbeResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProbeResult.ProtoReflect.Descriptor instead.
 func (*ProbeResult) Descriptor() ([]byte, []int) {
-	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{9}
+	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ProbeResult) GetProbeId() string {
@@ -728,7 +812,7 @@ type SpoofingIndicators struct {
 
 func (x *SpoofingIndicators) Reset() {
 	*x = SpoofingIndicators{}
-	mi := &file_proto_v1_echomap_proto_msgTypes[10]
+	mi := &file_proto_v1_echomap_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -740,7 +824,7 @@ func (x *SpoofingIndicators) String() string {
 func (*SpoofingIndicators) ProtoMessage() {}
 
 func (x *SpoofingIndicators) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_v1_echomap_proto_msgTypes[10]
+	mi := &file_proto_v1_echomap_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -753,7 +837,7 @@ func (x *SpoofingIndicators) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpoofingIndicators.ProtoReflect.Descriptor instead.
 func (*SpoofingIndicators) Descriptor() ([]byte, []int) {
-	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{10}
+	return file_proto_v1_echomap_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SpoofingIndicators) GetVpnLikely() bool {
@@ -812,7 +896,7 @@ const file_proto_v1_echomap_proto_rawDesc = "" +
 	"\fmeasurements\x18\x03 \x03(\v2\x1c.echomap.v1.ProbeMeasurementR\fmeasurements\"F\n" +
 	"\x10ProbeMeasurement\x12\x19\n" +
 	"\bprobe_id\x18\x01 \x01(\tR\aprobeId\x12\x17\n" +
-	"\artts_us\x18\x02 \x03(\x05R\x06rttsUs\"\xa1\x02\n" +
+	"\artts_us\x18\x02 \x03(\x05R\x06rttsUs\"\xe0\x02\n" +
 	"\x13MeasurementResponse\x12-\n" +
 	"\averdict\x18\x01 \x01(\v2\x13.echomap.v1.VerdictR\averdict\x12*\n" +
 	"\x06region\x18\x02 \x01(\v2\x12.echomap.v1.RegionR\x06region\x125\n" +
@@ -820,7 +904,15 @@ const file_proto_v1_echomap_proto_rawDesc = "" +
 	"exclusions\x18\x03 \x03(\v2\x15.echomap.v1.ExclusionR\n" +
 	"exclusions\x12<\n" +
 	"\rprobe_results\x18\x04 \x03(\v2\x17.echomap.v1.ProbeResultR\fprobeResults\x12:\n" +
-	"\bspoofing\x18\x05 \x01(\v2\x1e.echomap.v1.SpoofingIndicatorsR\bspoofing\"\xa9\x01\n" +
+	"\bspoofing\x18\x05 \x01(\v2\x1e.echomap.v1.SpoofingIndicatorsR\bspoofing\x12=\n" +
+	"\rdataset_match\x18\x06 \x01(\v2\x18.echomap.v1.DatasetMatchR\fdatasetMatch\"\x8e\x01\n" +
+	"\fDatasetMatch\x12\x12\n" +
+	"\x04city\x18\x01 \x01(\tR\x04city\x12\x10\n" +
+	"\x03lat\x18\x02 \x01(\x01R\x03lat\x12\x10\n" +
+	"\x03lon\x18\x03 \x01(\x01R\x03lon\x12\x1f\n" +
+	"\vmatch_error\x18\x04 \x01(\x01R\n" +
+	"matchError\x12%\n" +
+	"\x0edataset_loaded\x18\x05 \x01(\bR\rdatasetLoaded\"\xa9\x01\n" +
 	"\aVerdict\x12*\n" +
 	"\x06status\x18\x01 \x01(\x0e2\x12.echomap.v1.StatusR\x06status\x12\x1e\n" +
 	"\n" +
@@ -873,7 +965,7 @@ func file_proto_v1_echomap_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_v1_echomap_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_v1_echomap_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_v1_echomap_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_proto_v1_echomap_proto_goTypes = []any{
 	(Status)(0),                 // 0: echomap.v1.Status
 	(*ChallengeRequest)(nil),    // 1: echomap.v1.ChallengeRequest
@@ -882,30 +974,32 @@ var file_proto_v1_echomap_proto_goTypes = []any{
 	(*MeasurementRequest)(nil),  // 4: echomap.v1.MeasurementRequest
 	(*ProbeMeasurement)(nil),    // 5: echomap.v1.ProbeMeasurement
 	(*MeasurementResponse)(nil), // 6: echomap.v1.MeasurementResponse
-	(*Verdict)(nil),             // 7: echomap.v1.Verdict
-	(*Region)(nil),              // 8: echomap.v1.Region
-	(*Exclusion)(nil),           // 9: echomap.v1.Exclusion
-	(*ProbeResult)(nil),         // 10: echomap.v1.ProbeResult
-	(*SpoofingIndicators)(nil),  // 11: echomap.v1.SpoofingIndicators
+	(*DatasetMatch)(nil),        // 7: echomap.v1.DatasetMatch
+	(*Verdict)(nil),             // 8: echomap.v1.Verdict
+	(*Region)(nil),              // 9: echomap.v1.Region
+	(*Exclusion)(nil),           // 10: echomap.v1.Exclusion
+	(*ProbeResult)(nil),         // 11: echomap.v1.ProbeResult
+	(*SpoofingIndicators)(nil),  // 12: echomap.v1.SpoofingIndicators
 }
 var file_proto_v1_echomap_proto_depIdxs = []int32{
 	3,  // 0: echomap.v1.ChallengeResponse.targets:type_name -> echomap.v1.ProbeTarget
 	5,  // 1: echomap.v1.MeasurementRequest.measurements:type_name -> echomap.v1.ProbeMeasurement
-	7,  // 2: echomap.v1.MeasurementResponse.verdict:type_name -> echomap.v1.Verdict
-	8,  // 3: echomap.v1.MeasurementResponse.region:type_name -> echomap.v1.Region
-	9,  // 4: echomap.v1.MeasurementResponse.exclusions:type_name -> echomap.v1.Exclusion
-	10, // 5: echomap.v1.MeasurementResponse.probe_results:type_name -> echomap.v1.ProbeResult
-	11, // 6: echomap.v1.MeasurementResponse.spoofing:type_name -> echomap.v1.SpoofingIndicators
-	0,  // 7: echomap.v1.Verdict.status:type_name -> echomap.v1.Status
-	1,  // 8: echomap.v1.EchoMap.FetchChallenge:input_type -> echomap.v1.ChallengeRequest
-	4,  // 9: echomap.v1.EchoMap.SubmitMeasurement:input_type -> echomap.v1.MeasurementRequest
-	2,  // 10: echomap.v1.EchoMap.FetchChallenge:output_type -> echomap.v1.ChallengeResponse
-	6,  // 11: echomap.v1.EchoMap.SubmitMeasurement:output_type -> echomap.v1.MeasurementResponse
-	10, // [10:12] is the sub-list for method output_type
-	8,  // [8:10] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	8,  // 2: echomap.v1.MeasurementResponse.verdict:type_name -> echomap.v1.Verdict
+	9,  // 3: echomap.v1.MeasurementResponse.region:type_name -> echomap.v1.Region
+	10, // 4: echomap.v1.MeasurementResponse.exclusions:type_name -> echomap.v1.Exclusion
+	11, // 5: echomap.v1.MeasurementResponse.probe_results:type_name -> echomap.v1.ProbeResult
+	12, // 6: echomap.v1.MeasurementResponse.spoofing:type_name -> echomap.v1.SpoofingIndicators
+	7,  // 7: echomap.v1.MeasurementResponse.dataset_match:type_name -> echomap.v1.DatasetMatch
+	0,  // 8: echomap.v1.Verdict.status:type_name -> echomap.v1.Status
+	1,  // 9: echomap.v1.EchoMap.FetchChallenge:input_type -> echomap.v1.ChallengeRequest
+	4,  // 10: echomap.v1.EchoMap.SubmitMeasurement:input_type -> echomap.v1.MeasurementRequest
+	2,  // 11: echomap.v1.EchoMap.FetchChallenge:output_type -> echomap.v1.ChallengeResponse
+	6,  // 12: echomap.v1.EchoMap.SubmitMeasurement:output_type -> echomap.v1.MeasurementResponse
+	11, // [11:13] is the sub-list for method output_type
+	9,  // [9:11] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_v1_echomap_proto_init() }
@@ -919,7 +1013,7 @@ func file_proto_v1_echomap_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_v1_echomap_proto_rawDesc), len(file_proto_v1_echomap_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
