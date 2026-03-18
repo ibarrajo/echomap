@@ -3,3 +3,6 @@ bin/
 *.test
 *.out
 .env
+*.db
+*.db-shm
+*.db-wal
