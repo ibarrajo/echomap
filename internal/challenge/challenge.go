@@ -47,18 +47,17 @@ type Probe struct {
 
 // Known global probe locations (a starter set covering major regions).
 var knownProbes = []Probe{
-	{ID: "fra-1", Host: "fra.probes.echomap.dev", Lat: 50.1109, Lon: 8.6821, Port: 443},
-	{ID: "lhr-1", Host: "lhr.probes.echomap.dev", Lat: 51.5074, Lon: -0.1278, Port: 443},
-	{ID: "cdg-1", Host: "cdg.probes.echomap.dev", Lat: 48.8566, Lon: 2.3522, Port: 443},
-	{ID: "ams-1", Host: "ams.probes.echomap.dev", Lat: 52.3676, Lon: 4.9041, Port: 443},
-	{ID: "nyc-1", Host: "nyc.probes.echomap.dev", Lat: 40.7128, Lon: -74.0060, Port: 443},
-	{ID: "lax-1", Host: "lax.probes.echomap.dev", Lat: 33.9425, Lon: -118.4081, Port: 443},
-	{ID: "nrt-1", Host: "nrt.probes.echomap.dev", Lat: 35.6762, Lon: 139.6503, Port: 443},
-	{ID: "syd-1", Host: "syd.probes.echomap.dev", Lat: -33.8688, Lon: 151.2093, Port: 443},
-	{ID: "gru-1", Host: "gru.probes.echomap.dev", Lat: -23.5505, Lon: -46.6333, Port: 443},
-	{ID: "jnb-1", Host: "jnb.probes.echomap.dev", Lat: -26.2041, Lon: 28.0473, Port: 443},
-	{ID: "sin-1", Host: "sin.probes.echomap.dev", Lat: 1.3521, Lon: 103.8198, Port: 443},
-	{ID: "bom-1", Host: "bom.probes.echomap.dev", Lat: 19.0760, Lon: 72.8777, Port: 443},
+	{ID: "fra-1", Host: "fra-de-ping.vultr.com", Lat: 50.1109, Lon: 8.6821, Port: 80},
+	{ID: "lon-1", Host: "lon-gb-ping.vultr.com", Lat: 51.5074, Lon: -0.1278, Port: 80},
+	{ID: "par-1", Host: "par-fr-ping.vultr.com", Lat: 48.8566, Lon: 2.3522, Port: 80},
+	{ID: "ams-1", Host: "ams-nl-ping.vultr.com", Lat: 52.3676, Lon: 4.9041, Port: 80},
+	{ID: "lax-1", Host: "lax-ca-us-ping.vultr.com", Lat: 33.9425, Lon: -118.4081, Port: 80},
+	{ID: "hnd-1", Host: "hnd-jp-ping.vultr.com", Lat: 35.6762, Lon: 139.6503, Port: 80},
+	{ID: "syd-1", Host: "syd-au-ping.vultr.com", Lat: -33.8688, Lon: 151.2093, Port: 80},
+	{ID: "gru-1", Host: "sao-br-ping.vultr.com", Lat: -23.5505, Lon: -46.6333, Port: 80},
+	{ID: "jnb-1", Host: "jnb-za-ping.vultr.com", Lat: -26.2041, Lon: 28.0473, Port: 80},
+	{ID: "sin-1", Host: "sgp-ping.vultr.com", Lat: 1.3521, Lon: 103.8198, Port: 80},
+	{ID: "bom-1", Host: "bom-in-ping.vultr.com", Lat: 19.0760, Lon: 72.8777, Port: 80},
 }
 
 // NewManager creates a new challenge manager.

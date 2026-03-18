@@ -76,26 +76,42 @@ func main() {
 	}
 
 	// Step 4: Display results
-	fmt.Println("\n=== RESULT ===")
-	fmt.Printf("  Status:     %s\n", resp.Verdict.Status)
-	fmt.Printf("  Confidence: %.1f%%\n", resp.Verdict.Confidence*100)
-	fmt.Printf("  Region:     %s\n", resp.Region.Label)
-	fmt.Printf("  Center:     %.4f, %.4f\n", resp.Region.Lat, resp.Region.Lon)
-	fmt.Printf("  Radius:     %.0f km\n", resp.Region.RadiusKm)
+	statusName := resp.Verdict.Status.String()
+	fmt.Println("\n=== GEOLOCATION RESULT ===")
+	fmt.Printf("  Verdict:    %s (%.0f%% confidence)\n", statusName, resp.Verdict.Confidence*100)
+	fmt.Printf("  Location:   %s\n", resp.Region.Label)
+	fmt.Printf("  Lat/Lon:    %.4f, %.4f\n", resp.Region.Lat, resp.Region.Lon)
+	fmt.Printf("  Accuracy:   ±%.0f km radius\n", resp.Region.RadiusKm)
+
+	// Probe details
+	fmt.Println("\n  Probe Details:")
+	fmt.Printf("  %-8s  %-10s  %-12s  %s\n", "PROBE", "RTT", "MAX DIST", "SPEED-OF-LIGHT BOUND")
+	for _, pr := range resp.ProbeResults {
+		fmt.Printf("  %-8s  %7.1fms  %8.0f km   You are within %.0f km of this probe\n",
+			pr.ProbeId, pr.RttMs, pr.MaxDistanceKm, pr.MaxDistanceKm)
+	}
 
 	if len(resp.Exclusions) > 0 {
-		fmt.Println("\n  Excluded regions:")
+		fmt.Println("\n  You are NOT in:")
 		for _, e := range resp.Exclusions {
 			fmt.Printf("    - %s (%.0f%% confidence)\n", e.Region, e.Confidence*100)
 		}
 	}
 
-	if resp.Spoofing != nil {
-		fmt.Println("\n  Spoofing indicators:")
-		fmt.Printf("    VPN likely:       %v\n", resp.Spoofing.VpnLikely)
-		fmt.Printf("    Jitter abnormal:  %v\n", resp.Spoofing.JitterAbnormal)
-		fmt.Printf("    Ratio issues:     %v\n", resp.Spoofing.RatioInconsistent)
-		fmt.Printf("    Impossible:       %v\n", resp.Spoofing.PhysicallyImpossible)
+	if resp.Spoofing != nil && (resp.Spoofing.VpnLikely || resp.Spoofing.JitterAbnormal || resp.Spoofing.RatioInconsistent || resp.Spoofing.PhysicallyImpossible) {
+		fmt.Println("\n  Spoofing Flags:")
+		if resp.Spoofing.VpnLikely {
+			fmt.Println("    ! VPN/proxy detected (all probes have similar high RTTs)")
+		}
+		if resp.Spoofing.JitterAbnormal {
+			fmt.Println("    ! Abnormal jitter (RTTs too consistent — possible artificial delay)")
+		}
+		if resp.Spoofing.RatioInconsistent {
+			fmt.Println("    ! RTT ratios inconsistent with any real geographic location")
+		}
+		if resp.Spoofing.PhysicallyImpossible {
+			fmt.Println("    ! Physically impossible — RTTs violate speed of light")
+		}
 	}
 }
 

@@ -51,27 +51,37 @@ func TestMaxDistanceFromRTT_ZeroRTT(t *testing.T) {
 	}
 }
 
-func TestMaxDistanceFromRTT_10ms(t *testing.T) {
-	// 10ms RTT → one-way 5ms → 5 * 200 = 1000 km
-	d := geo.MaxDistanceFromRTT(10_000) // microseconds
-	if math.Abs(d-1000) > 1 {
-		t.Errorf("10ms RTT should give ~1000 km, got %f", d)
+func TestMaxDistanceFromRTT_BelowOverhead(t *testing.T) {
+	// 10ms RTT is below 30ms TCP overhead → minimum 50km radius
+	d := geo.MaxDistanceFromRTT(10_000)
+	if math.Abs(d-50) > 1 {
+		t.Errorf("RTT below TCP overhead should give 50 km minimum, got %f", d)
 	}
 }
 
-func TestMaxDistanceFromRTT_1ms(t *testing.T) {
-	// 1ms RTT → one-way 0.5ms → 0.5 * 200 = 100 km
-	d := geo.MaxDistanceFromRTT(1_000) // microseconds
-	if math.Abs(d-100) > 1 {
-		t.Errorf("1ms RTT should give ~100 km, got %f", d)
+func TestMaxDistanceFromRTT_AtOverhead(t *testing.T) {
+	// 30ms RTT = exactly TCP overhead → minimum 50km
+	d := geo.MaxDistanceFromRTT(30_000)
+	if math.Abs(d-50) > 1 {
+		t.Errorf("RTT at TCP overhead should give 50 km minimum, got %f", d)
+	}
+}
+
+func TestMaxDistanceFromRTT_100ms(t *testing.T) {
+	// 100ms RTT: effective = 100000 - 30000 = 70000μs
+	// one-way = 35000μs, distance = 35000 * 0.2 = 7000 km
+	d := geo.MaxDistanceFromRTT(100_000)
+	if math.Abs(d-7000) > 1 {
+		t.Errorf("100ms RTT should give ~7000 km, got %f", d)
 	}
 }
 
 func TestMaxDistanceFromRTT_250ms(t *testing.T) {
-	// 250ms RTT → one-way 125ms → 125 * 200 = 25000 km
-	d := geo.MaxDistanceFromRTT(250_000) // microseconds
-	if math.Abs(d-25000) > 1 {
-		t.Errorf("250ms RTT should give ~25000 km, got %f", d)
+	// 250ms RTT: effective = 250000 - 30000 = 220000μs
+	// one-way = 110000μs, distance = 110000 * 0.2 = 22000 km
+	d := geo.MaxDistanceFromRTT(250_000)
+	if math.Abs(d-22000) > 1 {
+		t.Errorf("250ms RTT should give ~22000 km, got %f", d)
 	}
 }
 
@@ -212,9 +222,11 @@ func TestCheckJitter_LowJitterHighRTT_Suspicious(t *testing.T) {
 
 func TestCheckRatios_ConsistentLocation(t *testing.T) {
 	// User in Amsterdam: Frankfurt closer than NYC
+	// With TCP calibration (0.07 km/μs), need larger RTTs so circles overlap probe distance
+	// FRA-NYC ~6200km apart; need maxDist_fra + maxDist_nyc > 6200
 	measurements := []geo.Measurement{
-		{ProbeID: "fra", ProbeLat: 50.1109, ProbeLon: 8.6821, RTTs: []int{8000, 9000, 8500}},
-		{ProbeID: "nyc", ProbeLat: 40.7128, ProbeLon: -74.0060, RTTs: []int{85000, 87000, 86000}},
+		{ProbeID: "fra", ProbeLat: 50.1109, ProbeLon: 8.6821, RTTs: []int{25000, 28000, 26000}},
+		{ProbeID: "nyc", ProbeLat: 40.7128, ProbeLon: -74.0060, RTTs: []int{200000, 210000, 205000}},
 	}
 	ok := geo.CheckRatios(measurements)
 	if !ok {

@@ -118,10 +118,12 @@ func TestDetectVPN_SingleProbe(t *testing.T) {
 
 func TestCorrelateProbes_ConsistentGeography(t *testing.T) {
 	// User in Amsterdam: closer probes have lower RTTs
+	// RTTs scaled for TCP overhead model (30ms baseline subtracted before distance calc)
+	// AMS ~40ms (nearby, within overhead), FRA ~50ms (slightly farther), NRT ~350ms (far)
 	measurements := []geo.Measurement{
-		{ProbeID: "ams-1", ProbeLat: 52.3676, ProbeLon: 4.9041, RTTs: []int{2000, 2500, 2200}},   // very close
-		{ProbeID: "fra-1", ProbeLat: 50.1109, ProbeLon: 8.6821, RTTs: []int{7500, 8200, 7800}},    // nearby
-		{ProbeID: "nrt-1", ProbeLat: 35.6762, ProbeLon: 139.6503, RTTs: []int{245000, 260000, 255000}}, // far
+		{ProbeID: "ams-1", ProbeLat: 52.3676, ProbeLon: 4.9041, RTTs: []int{40000, 43000, 41000}},      // very close
+		{ProbeID: "fra-1", ProbeLat: 50.1109, ProbeLon: 8.6821, RTTs: []int{55000, 58000, 56000}},       // nearby
+		{ProbeID: "nrt-1", ProbeLat: 35.6762, ProbeLon: 139.6503, RTTs: []int{350000, 370000, 360000}}, // far
 	}
 
 	result := geo.CorrelateProbes(measurements)

@@ -2,7 +2,6 @@ package grpcserver
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/elninja/echomap/internal/challenge"
@@ -45,7 +44,9 @@ func (h *Handler) FetchChallenge(ctx context.Context, req *echomapv1.ChallengeRe
 		return nil, status.Errorf(codes.Internal, "generate token: %v", err)
 	}
 
-	probes := h.mgr.SelectProbes(0, 0, h.cfg.ProbeCount)
+	// Use all available probes for maximum triangulation accuracy.
+	// With only ~11 global probes, selecting a subset risks missing the user's region.
+	probes := h.mgr.SelectProbes(0, 0, 100)
 
 	targets := make([]*echomapv1.ProbeTarget, len(probes))
 	for i, p := range probes {
@@ -146,7 +147,7 @@ func (h *Handler) SubmitMeasurement(ctx context.Context, req *echomapv1.Measurem
 			Lat:      result.Region.Lat,
 			Lon:      result.Region.Lon,
 			RadiusKm: result.Region.RadiusKM,
-			Label:    fmt.Sprintf("%.1f, %.1f (±%.0f km)", result.Region.Lat, result.Region.Lon, result.Region.RadiusKM),
+			Label:    geo.RegionLabel(result.Region.Lat, result.Region.Lon, result.Region.RadiusKM),
 		},
 		Exclusions:   exclusions,
 		ProbeResults: probeResults,

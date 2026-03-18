@@ -216,12 +216,11 @@ func (e *Engine) score(region Region, probeCount int, jitterBad, ratioOK bool, d
 func defaultProbeToCity() map[string]string {
 	return map[string]string{
 		"fra-1": "Frankfurt",
-		"lhr-1": "London",
-		"cdg-1": "Paris",
+		"lon-1": "London",
+		"par-1": "Paris",
 		"ams-1": "Amsterdam",
-		"nyc-1": "New York",
 		"lax-1": "Los Angeles",
-		"nrt-1": "Tokyo",
+		"hnd-1": "Tokyo",
 		"syd-1": "Sydney",
 		"gru-1": "Sao Paulo",
 		"jnb-1": "Johannesburg",

@@ -7,8 +7,16 @@ import (
 
 const (
 	earthRadiusKM = 6371.0
-	// Speed of light in fiber optic: ~200,000 km/s = 200 km/ms = 0.2 km/μs
-	fiberSpeedKMPerUS = 0.2 // km per microsecond
+	// Speed of light in fiber: ~200 km/ms = 0.2 km/μs.
+	// We use the theoretical speed but subtract a fixed TCP overhead before
+	// calculating distance (see MaxDistanceFromRTT).
+	fiberSpeedKMPerUS = 0.2 // km per microsecond (theoretical fiber speed)
+
+	// TCP connect adds fixed overhead: SYN/SYN-ACK processing, kernel scheduling,
+	// TLS negotiation. Empirically ~25-35ms per connection even to nearby servers.
+	// We subtract this before computing distance so that a 50ms RTT to a nearby
+	// server gives ~0km instead of 5000km.
+	tcpOverheadUS = 30_000 // 30ms baseline overhead in microseconds
 )
 
 // Circle represents a maximum-distance circle from a probe.
@@ -60,13 +68,19 @@ func HaversineKM(lat1, lon1, lat2, lon2 float64) float64 {
 }
 
 // MaxDistanceFromRTT converts a round-trip time (microseconds) to maximum distance (km).
-// Uses speed of light in fiber: ~200 km/ms.
+// Subtracts TCP overhead before applying speed-of-light calculation.
 func MaxDistanceFromRTT(rttUS int) float64 {
 	if rttUS <= 0 {
 		return 0
 	}
-	// one-way = rtt / 2, distance = one-way * speed
-	return float64(rttUS) / 2.0 * fiberSpeedKMPerUS
+	// Subtract fixed TCP overhead (SYN/SYN-ACK, processing)
+	effective := rttUS - tcpOverheadUS
+	if effective <= 0 {
+		// RTT is within TCP overhead — user is very close to probe
+		return 50 // minimum 50km radius for nearby probes
+	}
+	// one-way = effective / 2, distance = one-way * speed
+	return float64(effective) / 2.0 * fiberSpeedKMPerUS
 }
 
 // IntersectCircles computes the approximate region where all circles overlap.
@@ -79,25 +93,22 @@ func IntersectCircles(circles []Circle) Region {
 		return Region{Lat: circles[0].Lat, Lon: circles[0].Lon, RadiusKM: circles[0].RadiusKM}
 	}
 
-	// Find bounding box of all circles
-	minLat, maxLat := 90.0, -90.0
-	minLon, maxLon := 180.0, -180.0
-	for _, c := range circles {
-		latDelta := c.RadiusKM / 111.0 // ~111 km per degree latitude
-		lonDelta := c.RadiusKM / (111.0 * math.Cos(toRad(c.Lat)))
-		if c.Lat-latDelta < minLat {
-			minLat = c.Lat - latDelta
-		}
-		if c.Lat+latDelta > maxLat {
-			maxLat = c.Lat + latDelta
-		}
-		if c.Lon-lonDelta < minLon {
-			minLon = c.Lon - lonDelta
-		}
-		if c.Lon+lonDelta > maxLon {
-			maxLon = c.Lon + lonDelta
+	// Use the SMALLEST circle as the bounding box — the intersection
+	// must be within the smallest circle. This avoids sampling the entire
+	// globe when one probe is nearby (tight circle) and others are far (huge circles).
+	smallest := circles[0]
+	for _, c := range circles[1:] {
+		if c.RadiusKM < smallest.RadiusKM {
+			smallest = c
 		}
 	}
+
+	latDelta := smallest.RadiusKM / 111.0
+	lonDelta := smallest.RadiusKM / (111.0 * math.Cos(toRad(smallest.Lat)))
+	minLat := smallest.Lat - latDelta
+	maxLat := smallest.Lat + latDelta
+	minLon := smallest.Lon - lonDelta
+	maxLon := smallest.Lon + lonDelta
 
 	// Sample grid points and check which are inside ALL circles
 	const gridSize = 100
