@@ -192,4 +192,10 @@ internal/config       —  4 tests (defaults, env overrides, invalid input)
 
 ## License
 
-MIT
+This project is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+
+**You can:** view, fork, learn from, run personally, use for research/education.
+
+**You cannot:** use commercially without permission.
+
+Interested in commercial use? Contact [Jose Ibarra](https://github.com/ibarrajo).
